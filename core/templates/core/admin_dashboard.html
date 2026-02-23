@@ -1,0 +1,554 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Admin Dashboard - Acadlink{% endblock %}
+
+{% block content %}
+
+
+<div class="page-hero text-white p-4 p-md-5 mb-4 shadow-sm">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+        <div>
+            <h2 class="mb-1 fw-bold">Admin Workspace</h2>
+            <p class="mb-0 opacity-75">Control approvals, monitor workload, and keep the system healthy.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <span class="page-chip"><i class="bi bi-people"></i> {{ total_users }} Total Users</span>
+            <span class="page-chip"><i class="bi bi-journal-check"></i> {{ active_homework }} Active Homework</span>
+            <span class="page-chip"><i class="bi bi-hourglass-split"></i> {{ pending_actions_total }} Pending Actions</span>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{% url 'manage_users' %}" class="btn btn-outline-primary">Manage Users</a>
+    <a href="{% url 'manage_classes' %}" class="btn btn-primary">Manage Classes</a>
+</div>
+
+<!-- Notification Cards -->
+<div class="row g-3 mb-4">
+    <!-- Pending Teachers -->
+    {% if pending_teachers > 0 %}
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm border-start border-warning border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Pending Teachers</p>
+                        <h3 class="mb-0 fw-bold text-warning">{{ pending_teachers }}</h3>
+                    </div>
+                    <i class="bi bi-person-check fs-1 text-warning"></i>
+                </div>
+                <a href="{% url 'manage_users' %}?role=teacher&status=pending"
+                    class="btn btn-sm btn-warning mt-2 w-100">
+                    Review Now
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pending Students -->
+    {% if pending_students > 0 %}
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm border-start border-info border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Pending Students</p>
+                        <h3 class="mb-0 fw-bold text-info">{{ pending_students }}</h3>
+                    </div>
+                    <i class="bi bi-person-check fs-1 text-info"></i>
+                </div>
+                <a href="{% url 'manage_users' %}?role=student&status=pending" class="btn btn-sm btn-info mt-2 w-100">
+                    Review Now
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pending Parents -->
+    {% if pending_parents > 0 %}
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm border-start border-success border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Pending Parents</p>
+                        <h3 class="mb-0 fw-bold text-success">{{ pending_parents }}</h3>
+                    </div>
+                    <i class="bi bi-person-check fs-1 text-success"></i>
+                </div>
+                <a href="{% url 'manage_users' %}?role=parent&status=pending" class="btn btn-sm btn-success mt-2 w-100">
+                    Review Now
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pending Section Change Requests -->
+    {% if total_pending_section_requests > 0 %}
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm border-start border-danger border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Section Changes</p>
+                        <h3 class="mb-0 fw-bold text-danger">{{ total_pending_section_requests }}</h3>
+                    </div>
+                    <i class="bi bi-shuffle fs-1 text-danger"></i>
+                </div>
+                <a href="{% url 'manage_section_change_requests' %}?status=pending"
+                    class="btn btn-sm btn-danger mt-2 w-100">
+                    Review Now
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pending Parent Links -->
+    {% if total_pending_parent_links > 0 %}
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm border-start border-primary border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted small mb-1">Parent Links</p>
+                        <h3 class="mb-0 fw-bold text-primary">{{ total_pending_parent_links }}</h3>
+                    </div>
+                    <i class="bi bi-people fs-1 text-primary"></i>
+                </div>
+                <a href="{% url 'manage_parent_links' %}?status=pending" class="btn btn-sm btn-primary mt-2 w-100">
+                    Review Now
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% if mood_alerts %}
+<div class="card border-0 shadow-sm mb-4 border-start border-warning border-4">
+    <div class="card-header bg-warning-subtle border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold text-warning-emphasis">
+            <i class="bi bi-exclamation-triangle-fill"></i> Student Mood Alerts
+        </h5>
+        <span class="badge bg-warning text-dark">{{ total_mood_alerts }}</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student</th>
+                        <th>Class</th>
+                        <th>Pattern</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alert in mood_alerts %}
+                    <tr>
+                        <td>
+                            <strong>{{ alert.student.get_full_name|default:alert.student.username }}</strong><br>
+                            <small class="text-muted">{{ alert.student.username }}</small>
+                        </td>
+                        <td>
+                            {% if alert.class_name and alert.section %}
+                            {{ alert.class_name.name }} - {{ alert.section.name }}
+                            {% else %}
+                            <span class="text-muted">Not assigned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-warning text-dark">
+                                {{ alert.bad_count }}/{{ alert.total_count }} recent entries are low mood
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if anonymous_reports %}
+<div id="student-reports" class="card border-0 shadow-sm mb-4 border-start border-danger border-4">
+    <div class="card-header bg-danger-subtle border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold text-danger-emphasis">
+            <i class="bi bi-shield-exclamation"></i> Student Reports
+        </h5>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-danger">
+                {{ reports_new_total }} New (A: {{ reports_new_anonymous }} | I: {{ reports_new_identified }})
+            </span>
+            {% if request.GET.view_reports == 'all' %}
+            <a href="{% url 'admin_dashboard' %}#student-reports" class="btn btn-sm btn-outline-danger">Show less</a>
+            {% elif anonymous_reports|length > 2 %}
+            <a href="{% url 'admin_dashboard' %}?view_reports=all#student-reports" class="btn btn-sm btn-outline-danger">View all</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Type</th>
+                        <th>Reporter</th>
+                        <th>Target</th>
+                        <th>Severity</th>
+                        <th>Details</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if request.GET.view_reports == 'all' %}
+                    {% for report in anonymous_reports %}
+                    <tr>
+                        <td>{{ report.get_report_type_display }}</td>
+                        <td>
+                            {% if report.is_anonymous %}
+                            <span class="badge bg-dark-subtle text-dark border">Anonymous</span>
+                            {% elif report.reporter %}
+                            <strong>{{ report.reporter.get_full_name|default:report.reporter.username }}</strong>
+                            <br><small class="text-muted">@{{ report.reporter.username }}</small>
+                            {% else %}
+                            <span class="text-muted">Unknown</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ report.get_target_role_display }}
+                            {% if report.reported_person %}
+                            <br><small class="text-muted">{{ report.reported_person }}</small>
+                            {% endif %}
+                            {% if report.class_section_info %}
+                            <br><small class="text-muted">{{ report.class_section_info }}</small>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-secondary">{{ report.get_severity_display }}</span></td>
+                        <td>
+                            <small>{{ report.details|truncatechars:120 }}</small>
+                            <br><small class="text-muted">{{ report.created_at|date:"M d, Y h:i A" }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ report.get_status_display }}</span>
+                        </td>
+                        <td>
+                            <form method="post" action="{% url 'update_anonymous_report_status' report.id %}">
+                                {% csrf_token %}
+                                <div class="d-flex flex-column gap-2" style="min-width: 180px;">
+                                    <select name="status" class="form-select form-select-sm">
+                                        <option value="new" {% if report.status == 'new' %}selected{% endif %}>New</option>
+                                        <option value="in_review" {% if report.status == 'in_review' %}selected{% endif %}>In Review</option>
+                                        <option value="resolved" {% if report.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                                    </select>
+                                    <input type="text" name="admin_note" class="form-control form-control-sm"
+                                        value="{{ report.admin_note }}" placeholder="Internal note">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Save</button>
+                                </div>
+                            </form>
+                            <form method="post" action="{% url 'delete_anonymous_report' report.id %}" class="mt-2">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-secondary w-100"
+                                    onclick="return confirm('Delete this report permanently?');">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    {% for report in anonymous_reports|slice:":2" %}
+                    <tr>
+                        <td>{{ report.get_report_type_display }}</td>
+                        <td>
+                            {% if report.is_anonymous %}
+                            <span class="badge bg-dark-subtle text-dark border">Anonymous</span>
+                            {% elif report.reporter %}
+                            <strong>{{ report.reporter.get_full_name|default:report.reporter.username }}</strong>
+                            <br><small class="text-muted">@{{ report.reporter.username }}</small>
+                            {% else %}
+                            <span class="text-muted">Unknown</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ report.get_target_role_display }}
+                            {% if report.reported_person %}
+                            <br><small class="text-muted">{{ report.reported_person }}</small>
+                            {% endif %}
+                            {% if report.class_section_info %}
+                            <br><small class="text-muted">{{ report.class_section_info }}</small>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-secondary">{{ report.get_severity_display }}</span></td>
+                        <td>
+                            <small>{{ report.details|truncatechars:120 }}</small>
+                            <br><small class="text-muted">{{ report.created_at|date:"M d, Y h:i A" }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ report.get_status_display }}</span>
+                        </td>
+                        <td>
+                            <form method="post" action="{% url 'update_anonymous_report_status' report.id %}">
+                                {% csrf_token %}
+                                <div class="d-flex flex-column gap-2" style="min-width: 180px;">
+                                    <select name="status" class="form-select form-select-sm">
+                                        <option value="new" {% if report.status == 'new' %}selected{% endif %}>New</option>
+                                        <option value="in_review" {% if report.status == 'in_review' %}selected{% endif %}>In Review</option>
+                                        <option value="resolved" {% if report.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                                    </select>
+                                    <input type="text" name="admin_note" class="form-control form-control-sm"
+                                        value="{{ report.admin_note }}" placeholder="Internal note">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Save</button>
+                                </div>
+                            </form>
+                            <form method="post" action="{% url 'delete_anonymous_report' report.id %}" class="mt-2">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-secondary w-100"
+                                    onclick="return confirm('Delete this report permanently?');">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Section Change Requests List -->
+{% if pending_section_requests %}
+<div class="card border-0 shadow-sm mb-4 border-start border-danger border-4">
+    <div class="card-header bg-danger text-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-shuffle"></i> Pending Section Change Requests
+        </h5>
+        <span class="badge bg-white text-danger">{{ total_pending_section_requests }}</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student</th>
+                        <th>Class</th>
+                        <th>Current Section</th>
+                        <th>→</th>
+                        <th>Requested Section</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in pending_section_requests %}
+                    <tr>
+                        <td>
+                            <strong>{{ req.student.get_full_name|default:req.student.username }}</strong><br>
+                            <small class="text-muted">{{ req.student.username }}</small>
+                        </td>
+                        <td>{{ req.student.class_assigned.name }}</td>
+                        <td>
+                            <span class="badge bg-secondary">{{ req.current_section.name|default:'N/A' }}</span>
+                        </td>
+                        <td>
+                            <i class="bi bi-arrow-right text-primary"></i>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{{ req.requested_section.name }}</span>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ req.requested_at|date:"M d, Y" }}</small>
+                        </td>
+                        <td>
+                            <a href="{% url 'review_section_change_request' req.id %}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-eye"></i> Review
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if total_pending_section_requests > 5 %}
+        <div class="card-footer bg-white border-top">
+            <a href="{% url 'manage_section_change_requests' %}?status=pending" class="btn btn-outline-danger btn-sm">
+                View All {{ total_pending_section_requests }} Requests
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Parent Link Requests List -->
+{% if pending_parent_links %}
+<div class="card border-0 shadow-sm mb-4 border-start border-primary border-4">
+    <div class="card-header bg-primary text-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-people"></i> Pending Parent Link Requests
+        </h5>
+        <span class="badge bg-white text-primary">{{ total_pending_parent_links }}</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Parent</th>
+                        <th>Student</th>
+                        <th>Relationship</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for link in pending_parent_links %}
+                    <tr>
+                        <td>
+                            <strong>{{ link.parent.get_full_name|default:link.parent.username }}</strong><br>
+                            <small class="text-muted">{{ link.parent.username }}</small>
+                        </td>
+                        <td>
+                            <strong>{{ link.student.get_full_name|default:link.student.username }}</strong><br>
+                            <small class="text-muted">{{ link.student.username }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ link.relationship }}</span>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ link.requested_at|date:"M d, Y" }}</small>
+                        </td>
+                        <td>
+                            <a href="{% url 'review_parent_link' link.id %}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-eye"></i> Review
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if total_pending_parent_links > 5 %}
+        <div class="card-footer bg-white border-top">
+            <a href="{% url 'manage_parent_links' %}?status=pending" class="btn btn-outline-primary btn-sm">
+                View All {{ total_pending_parent_links }} Requests
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Stats Cards -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-5 g-3 mb-4">
+    <div class="col">
+        <div class="card metric-card">
+            <div class="card-body">
+                <p class="metric-label mb-1">Total Users</p>
+                <h2 class="fw-bold mb-0 text-primary">{{ total_users }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card metric-card">
+            <div class="card-body">
+                <p class="metric-label mb-1">Total Classes</p>
+                <h2 class="fw-bold mb-0 text-success">{{ total_classes }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card metric-card">
+            <div class="card-body">
+                <p class="metric-label mb-1">Total Subjects</p>
+                <h2 class="fw-bold mb-0 text-info">{{ total_subjects }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card metric-card">
+            <div class="card-body">
+                <p class="metric-label mb-1">Active Homework</p>
+                <h2 class="fw-bold mb-0 text-warning">{{ active_homework }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card metric-card">
+            <div class="card-body">
+                <p class="metric-label mb-1">Student Reports</p>
+                <h2 class="fw-bold mb-0 text-danger">{{ reports_new_total }}</h2>
+                <small class="text-muted">New items</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header themed-card-header">
+                <h5 class="mb-0 fw-bold">Recent Homework</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_homework %}
+                <div class="list-group list-group-flush">
+                    {% for hw in recent_homework %}
+                    <div class="list-group-item px-0">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ hw.title }}</strong><br>
+                                <small class="text-muted">{{ hw.subject.name }} - {{ hw.class_name.name }}</small>
+                            </div>
+                            <span class="badge bg-primary">{{ hw.status|title }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No recent homework.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header themed-card-header">
+                <h5 class="mb-0 fw-bold">Recently Approved Users</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_users %}
+                <div class="list-group list-group-flush">
+                    {% for user in recent_users %}
+                    <div class="list-group-item px-0">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ user.get_full_name|default:user.username }}</strong><br>
+                                <small class="text-muted">{{ user.username }} - {{ user.get_role_display }}</small>
+                            </div>
+                            <span class="badge bg-success">Approved</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No recently approved users.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

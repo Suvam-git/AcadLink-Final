@@ -1,0 +1,245 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Review Submission - Acadlink{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            
+            <a href="{% url 'review_submissions' %}" class="btn btn-outline-secondary mb-3">
+                <i class="bi bi-arrow-left"></i> Back to All Submissions
+            </a>
+
+            <div class="card border-0 shadow-lg">
+                <div class="card-header {% if is_locked %}bg-secondary{% else %}bg-primary{% endif %} text-white border-0">
+                    <h4 class="mb-0 fw-bold">
+                        {% if is_locked %}
+                            <i class="bi bi-lock-fill"></i> Submission Review (Locked)
+                        {% else %}
+                            <i class="bi bi-clipboard-check"></i> Review Homework Submission
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <!-- Homework Details -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0 fw-bold">Homework Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>Title:</strong> {{ submission.homework.title }}</p>
+                                    <p class="mb-2"><strong>Subject:</strong> {{ submission.homework.subject.name }}</p>
+                                    <p class="mb-0"><strong>Deadline:</strong> {{ submission.homework.deadline|date:"M d, Y H:i" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>Student:</strong> {{ submission.student.get_full_name|default:submission.student.username }}</p>
+                                    <p class="mb-2"><strong>Submitted:</strong> {{ submission.submitted_at|date:"M d, Y H:i" }}</p>
+                                    <p class="mb-2"><strong>Method:</strong> {{ submission.get_submission_mode_display }}</p>
+                                    <p class="mb-0">
+                                        <strong>Status:</strong> 
+                                        <span class="badge 
+                                            {% if submission.approval_status == 'approved' %}bg-success
+                                            {% elif submission.approval_status == 'resubmit' %}bg-warning text-dark
+                                            {% else %}bg-secondary{% endif %} px-3 py-2">
+                                            {{ submission.get_approval_status_display }}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Student's Submission -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0 fw-bold">Student's Work</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if submission.submission_text %}
+                            <div class="mb-3">
+                                <strong>Text Submission:</strong>
+                                <div class="border rounded p-3 mt-2 bg-light">
+                                    {{ submission.submission_text|linebreaks }}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if submission.submission_file %}
+                            <div>
+                                <strong>File Attachment:</strong><br>
+                                <a href="{{ submission.submission_file.url }}" class="btn btn-outline-primary mt-2" download>
+                                    <i class="bi bi-download"></i> Download Submission File
+                                </a>
+                            </div>
+                            {% endif %}
+                            
+                            {% if not submission.submission_text and not submission.submission_file %}
+                            <p class="text-muted mb-0">
+                                {% if submission.submission_mode == 'physical' %}
+                                    Student marked this as an in-person / physical copy submission.
+                                {% else %}
+                                    No submission content provided.
+                                {% endif %}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if quiz_answers %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0 fw-bold">Assignment Quiz Answers</h5>
+                        </div>
+                        <div class="card-body">
+                            {% for ans in quiz_answers %}
+                            <div class="border rounded p-3 mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <strong>Q{{ ans.question.order }}. {{ ans.question.question_text }}</strong>
+                                    {% if ans.is_correct %}
+                                    <span class="badge bg-success">Correct (+{{ ans.awarded_points }} pts)</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Incorrect</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">Selected: {{ ans.selected_option }} | Correct: {{ ans.question.correct_option }}</small>
+                            </div>
+                            {% endfor %}
+                            <div class="mt-2">
+                                <span class="badge bg-primary">Quiz Points Awarded: {{ submission.quiz_points_awarded }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Status Display -->
+                    {% if is_locked %}
+                    <!-- LOCKED - Cannot Edit -->
+                    <div class="alert alert-secondary border-0">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-lock-fill fs-3 me-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-2">This Submission Has Been Reviewed</h6>
+                                <p class="mb-2">The review status is locked and cannot be changed.</p>
+                                <div class="card bg-white border-secondary mt-3">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p class="mb-2">
+                                                    <strong>Decision:</strong> 
+                                                    <span class="badge 
+                                                        {% if submission.approval_status == 'approved' %}bg-success
+                                                        {% else %}bg-warning text-dark{% endif %}">
+                                                        {{ submission.get_approval_status_display }}
+                                                    </span>
+                                                </p>
+                                                <p class="mb-0">
+                                                    <strong>Reviewed by:</strong> {{ submission.reviewed_by.get_full_name|default:submission.reviewed_by.username }}
+                                                </p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p class="mb-0">
+                                                    <strong>Review Date:</strong> {{ submission.reviewed_at|date:"M d, Y H:i" }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {% if submission.teacher_feedback %}
+                                        <hr>
+                                        <div>
+                                            <strong>Feedback Provided:</strong>
+                                            <p class="mb-0 mt-2 p-2 bg-light rounded">{{ submission.teacher_feedback }}</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <a href="{% url 'review_submissions' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Submissions
+                        </a>
+                    </div>
+                    {% else %}
+                    <!-- NOT LOCKED - Can Review -->
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0 fw-bold">Provide Your Review</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                
+                                <div class="mb-4">
+                                    <label for="feedback" class="form-label fw-bold">
+                                        <i class="bi bi-chat-quote"></i> Feedback (Optional)
+                                    </label>
+                                    <textarea name="feedback" 
+                                              id="feedback" 
+                                              class="form-control" 
+                                              rows="6"
+                                              placeholder="Provide constructive feedback to help the student improve..."></textarea>
+                                    <small class="form-text text-muted">
+                                        This feedback will be visible to the student and helps them understand your decision.
+                                    </small>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="exp_points" class="form-label fw-bold">
+                                        <i class="bi bi-trophy"></i> Award Points on Approval
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="exp_points"
+                                        id="exp_points"
+                                        class="form-control"
+                                        min="0"
+                                        max="{{ approval_points_max|default:100 }}"
+                                        value="100"
+                                    >
+                                    <small class="form-text text-muted">
+                                        You can award 0 to {{ approval_points_max|default:100 }} points when approving.
+                                    </small>
+                                </div>
+
+                                <div class="alert alert-warning border-0">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    <strong>Important:</strong> Once you submit your review, the status will be <strong>permanently locked</strong> and cannot be changed.
+                                </div>
+
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <button type="submit" name="action" value="approved" class="btn btn-success btn-lg w-100">
+                                            <i class="bi bi-check-circle-fill"></i> Approve Submission
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button type="submit" name="action" value="resubmit" class="btn btn-warning btn-lg w-100">
+                                            <i class="bi bi-arrow-clockwise"></i> Request Resubmission
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid mt-2">
+                                    <a href="{% url 'review_submissions' %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left"></i> Cancel
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+{% endblock %}

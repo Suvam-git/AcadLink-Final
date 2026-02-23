@@ -1,0 +1,91 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Parent Messages - Acadlink{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold">Parent Messages</h2>
+        {% if unread_count > 0 %}
+        <small class="text-muted">{{ unread_count }} unread message{{ unread_count|pluralize }}</small>
+        {% endif %}
+    </div>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-envelope"></i> Messages from Parents
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {% if messages_list %}
+        <div class="list-group list-group-flush">
+            {% for msg in messages_list %}
+            <div class="list-group-item {% if not msg.is_read_by_teacher %}bg-light{% endif %}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h6 class="mb-1 fw-bold">
+                            {{ msg.subject }}
+                            {% if not msg.is_read_by_teacher %}
+                                <span class="badge bg-success">New</span>
+                            {% endif %}
+                            {% if msg.is_replied %}
+                                <span class="badge bg-info">Replied</span>
+                            {% endif %}
+                        </h6>
+                        <small class="text-muted">
+                            From: <strong>{{ msg.parent.get_full_name|default:msg.parent.username }}</strong> | 
+                            About: <strong>{{ msg.student.get_full_name|default:msg.student.username }}</strong>
+                            ({{ msg.student.class_assigned.name }} - {{ msg.student.section_assigned.name }})
+                        </small>
+                    </div>
+                    <small class="text-muted">{{ msg.sent_at|date:"M d, Y H:i" }}</small>
+                </div>
+                
+                <div class="card bg-white mb-2">
+                    <div class="card-body py-2">
+                        <strong class="small">Parent's Message:</strong>
+                        <p class="mb-0 small">{{ msg.message }}</p>
+                    </div>
+                </div>
+                
+                {% if msg.teacher_reply %}
+                <div class="card border-success mb-2">
+                    <div class="card-body py-2">
+                        <strong class="small text-success">Your Reply:</strong>
+                        <p class="mb-0 small">{{ msg.teacher_reply }}</p>
+                        <small class="text-muted">Replied on: {{ msg.replied_at|date:"M d, Y H:i" }}</small>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="d-flex gap-2 mt-2">
+                    {% if not msg.is_replied %}
+                        <a href="{% url 'reply_to_parent' msg.id %}" class="btn btn-sm btn-success">
+                            <i class="bi bi-reply"></i> Reply
+                        </a>
+                    {% endif %}
+                    {% if not msg.is_read_by_teacher %}
+                        <a href="{% url 'mark_message_read' msg.id %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-check"></i> Mark as Read
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox display-4"></i>
+            <p class="mt-3 mb-0">No messages from parents yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

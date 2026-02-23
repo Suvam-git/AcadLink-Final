@@ -1,0 +1,714 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Student Dashboard - Acadlink{% endblock %}
+
+{% block content %}
+<style>
+    .sd-action {
+        border: 1px solid var(--border-color);
+        border-radius: 0.85rem;
+        padding: 0.95rem;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: all 0.2s ease;
+        background: var(--surface-color);
+    }
+
+    .sd-action:hover {
+        transform: translateY(-2px);
+        border-color: #b6d4dd;
+        box-shadow: 0 10px 22px rgba(20, 33, 61, 0.08);
+        color: inherit;
+    }
+
+    .sd-status {
+        font-size: 0.74rem;
+        border-radius: 999px;
+        padding: 0.3rem 0.65rem;
+    }
+
+    .sd-timeline-item {
+        border-bottom: 1px dashed var(--border-color);
+        padding: 0.9rem 0;
+    }
+
+    .sd-timeline-item:last-child {
+        border-bottom: 0;
+    }
+
+    .sd-modal-header {
+        background: linear-gradient(120deg, var(--primary-color) 0%, #1d7874 100%);
+    }
+
+    .sd-mood-option {
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 0.62rem 0.72rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.93rem;
+    }
+
+    .sd-mood-option:hover {
+        border-color: #76a9ba;
+        background: #f5f9fb;
+    }
+
+    .sd-mood-option input {
+        margin: 0;
+    }
+
+    .sd-quote-highlight {
+        background:
+            radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.22) 0 16%, transparent 17%),
+            linear-gradient(130deg, var(--dark-color) 0%, var(--primary-color) 45%, var(--secondary-color) 100%);
+        border-radius: 1rem;
+        color: #fff;
+        border: 0;
+        box-shadow: 0 14px 28px rgba(20, 33, 61, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .sd-quote-highlight::after {
+        content: "";
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        right: -80px;
+        bottom: -90px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    .sd-quote-mark {
+        font-size: 2rem;
+        opacity: 0.75;
+        line-height: 1;
+    }
+
+    .wc-wrap {
+        border: 1px solid var(--border-color);
+        border-radius: 1rem;
+        background: var(--surface-color);
+        box-shadow: var(--shadow-soft);
+    }
+
+    .wc-head {
+        border-bottom: 1px solid var(--border-color);
+        background: linear-gradient(120deg, #edf5f9 0%, #f8fbfd 100%);
+        border-radius: 1rem 1rem 0 0;
+    }
+
+    .wc-mood-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.5rem;
+    }
+
+    .wc-mood-btn {
+        border: 1px solid var(--border-color);
+        border-radius: 0.7rem;
+        background: #fff;
+        padding: 0.55rem 0.35rem;
+        font-size: 0.83rem;
+        font-weight: 600;
+        color: var(--dark-color);
+        transition: all 0.2s ease;
+    }
+
+    .wc-mood-btn:hover,
+    .wc-mood-btn.active {
+        border-color: #7ea9bf;
+        background: #eef6fb;
+        color: var(--primary-color);
+    }
+
+    .wc-chat-box {
+        height: 260px;
+        overflow-y: auto;
+        border: 1px solid var(--border-color);
+        border-radius: 0.8rem;
+        background: #fbfdff;
+        padding: 0.75rem;
+    }
+
+    .wc-chat-msg {
+        max-width: 85%;
+        padding: 0.55rem 0.75rem;
+        border-radius: 0.8rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        line-height: 1.45;
+        white-space: pre-wrap;
+    }
+
+    .wc-user {
+        margin-left: auto;
+        background: var(--primary-color);
+        color: #fff;
+        border-bottom-right-radius: 0.2rem;
+    }
+
+    .wc-bot {
+        margin-right: auto;
+        background: #eef5f9;
+        color: #20384a;
+        border-bottom-left-radius: 0.2rem;
+        border: 1px solid #d9e7ef;
+    }
+
+    .wc-typing {
+        display: none;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-top: 0.35rem;
+    }
+
+    .wc-typing.show {
+        display: block;
+    }
+
+    .wc-launcher {
+        border: 1px solid var(--border-color);
+        border-radius: 0.9rem;
+        background: var(--surface-color);
+        box-shadow: var(--shadow-soft);
+        padding: 0.95rem 1rem;
+    }
+
+    .wc-modal .modal-dialog {
+        max-width: 760px;
+    }
+
+    @media (max-width: 768px) {
+        .wc-mood-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+</style>
+
+<div class="page-hero text-white p-4 p-md-5 mb-4 shadow-sm">
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+        <div>
+            <h2 class="fw-bold mb-1">Student Workspace</h2>
+            <p class="mb-0 opacity-75">Track progress, plan homework, and stay ahead.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            {% if user.class_assigned %}
+            <span class="page-chip">{{ user.class_assigned.name }} - {{ user.section_assigned.name }}</span>
+            {% endif %}
+            <span class="page-chip"><i class="bi bi-lightning-charge-fill"></i> {{ streak }} Day Streak</span>
+        </div>
+    </div>
+</div>
+
+{% if mood_quote_highlight %}
+<div class="sd-quote-highlight p-4 mb-4">
+    <div class="position-relative" style="z-index: 1;">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-stars"></i>
+            <span class="fw-semibold">{{ mood_quote_highlight.title }}</span>
+        </div>
+        <div class="sd-quote-mark">"</div>
+        <p class="mb-2 fs-5 fw-semibold">{{ mood_quote_highlight.quote }}</p>
+        {% if mood_quote_highlight.author %}
+        <small class="opacity-75">- {{ mood_quote_highlight.author }}</small>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% if not user.class_assigned %}
+<div class="alert alert-warning border-0 shadow-sm">
+    <h5 class="alert-heading">No Class Assigned</h5>
+    <p class="mb-0">Please contact the administrator to get assigned to a class.</p>
+</div>
+{% else %}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="metric-card h-100 p-3">
+            <div class="metric-label mb-2">Today's Work Left</div>
+            <div class="fs-3 fw-bold text-primary lh-1">{{ analysis.today_rem_mins }}</div>
+            <small class="text-muted">minutes left today</small>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="metric-card h-100 p-3">
+            <div class="metric-label mb-2">Weekly Work Left</div>
+            <div class="fs-3 fw-bold text-primary lh-1">{{ analysis.week_rem_mins }}</div>
+            <small class="text-muted">minutes left this week</small>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="metric-card h-100 p-3">
+            <div class="metric-label mb-2">Open Assignments</div>
+            <div class="fs-3 fw-bold text-primary lh-1">{{ pending_count }}</div>
+            <small class="text-muted">awaiting completion</small>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="metric-card h-100 p-3">
+            <div class="metric-label mb-2">Completion Score</div>
+            <div class="fs-3 fw-bold text-primary lh-1">{{ completion_rate }}%</div>
+            <small class="text-muted">{{ completed_assignments }}/{{ total_assignments }} submitted</small>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <a href="{% url 'student_homework' %}" class="sd-action">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-list-task fs-4 text-primary"></i>
+                <div>
+                    <div class="fw-semibold">Homework Queue</div>
+                    <small class="text-muted">View all assignments</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="{% url 'student_profile' %}" class="sd-action">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-person-circle fs-4 text-info"></i>
+                <div>
+                    <div class="fw-semibold">My Profile</div>
+                    <small class="text-muted">Update personal info</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="{% url 'student_homework' %}" class="sd-action">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-upload fs-4 text-success"></i>
+                <div>
+                    <div class="fw-semibold">Submissions</div>
+                    <small class="text-muted">Submit and resubmit work</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <button type="button" class="sd-action text-start w-100" data-bs-toggle="modal"
+            data-bs-target="#anonymousReportModal">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-shield-exclamation fs-4 text-danger"></i>
+                <div>
+                    <div class="fw-semibold">Report to Admin</div>
+                    <small class="text-muted">Anonymous or identified</small>
+                </div>
+            </div>
+        </button>
+    </div>
+</div>
+
+<div class="wc-launcher mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+    <div>
+        <div class="fw-semibold"><i class="bi bi-chat-heart text-primary me-1"></i> Wellness Counselor</div>
+        <small class="text-muted">Private support chat with short, practical guidance.</small>
+    </div>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#wellnessCounselorModal">
+        <i class="bi bi-chat-dots me-1"></i> Open Chat
+    </button>
+</div>
+
+<div class="modal fade wc-modal" id="wellnessCounselorModal" tabindex="-1" aria-labelledby="wellnessCounselorLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="wc-head p-3 p-md-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center">
+                    <div>
+                        <h5 id="wellnessCounselorLabel" class="mb-1 fw-bold"><i
+                                class="bi bi-chat-heart me-1 text-primary"></i> Wellness Counselor</h5>
+                        <p class="mb-0 text-muted small">Pick a mood, then chat. Replies stay short and clear.</p>
+                    </div>
+                    <span class="badge bg-light text-dark border">Short Replies</span>
+                </div>
+            </div>
+            <div class="p-3 p-md-4">
+                <div class="wc-mood-grid mb-3">
+                    <button type="button" class="wc-mood-btn" data-mood="Happy">😄 Happy</button>
+                    <button type="button" class="wc-mood-btn" data-mood="Sad">😢 Sad</button>
+                    <button type="button" class="wc-mood-btn" data-mood="Anxious">😰 Anxious</button>
+                    <button type="button" class="wc-mood-btn" data-mood="Angry">😡 Angry</button>
+                    <button type="button" class="wc-mood-btn" data-mood="Depressed">😔 Depressed</button>
+                    <button type="button" class="wc-mood-btn" data-mood="Numb">😐 Numb</button>
+                    <button type="button" class="wc-mood-btn" data-mood="Stressed">😩 Stressed</button>
+                    <button type="button" class="wc-mood-btn" data-mood="Overwhelmed">🥹 Overwhelmed</button>
+                </div>
+
+                <div id="wcChatBox" class="wc-chat-box mb-2">
+                    <div class="wc-chat-msg wc-bot">Choose your mood to start a private support chat.</div>
+                </div>
+                <div id="wcTyping" class="wc-typing">Counselor is typing...</div>
+
+                <div class="input-group mt-2">
+                    <textarea id="wcInput" class="form-control" rows="2" placeholder="Share what is bothering you..."
+                        maxlength="800"></textarea>
+                    <button id="wcSendBtn" class="btn btn-primary" type="button" disabled>
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+                <small class="text-muted d-block mt-2">If you are in danger, contact a trusted adult or local emergency
+                    services immediately.</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if suggestions %}
+<div class="card mb-4">
+    <div class="card-header themed-card-header">
+        <i class="bi bi-lightbulb me-1 text-primary"></i> Smart Suggestions
+    </div>
+    <div class="card-body pb-1">
+        {% for s in suggestions %}
+        <div class="alert alert-{{ s.type }} border-0 d-flex align-items-start gap-2 mb-2">
+            <div class="flex-grow-1">
+                <strong class="d-block mb-1">{{ s.title }}</strong>
+                <span class="fw-medium">{{ s.message }}</span>
+            </div>
+        </div>
+        {% endfor %}
+        {% if mins_per_day %}
+        <small class="text-muted fw-semibold d-block mt-1">Suggested pace: ~{{ mins_per_day }} minutes/day.</small>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+    <div class="col-lg-12">
+        {% if resubmit_homework %}
+        <div class="card mb-3 p-3 border-start border-warning border-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0 fw-bold text-warning-emphasis"><i class="bi bi-arrow-repeat me-1"></i> Resubmission
+                    Required</h5>
+                <span class="badge bg-warning text-dark">{{ resubmit_count }}</span>
+            </div>
+            {% for item in resubmit_homework|slice:":3" %}
+            <div class="sd-timeline-item d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-semibold">{{ item.homework.title }}</div>
+                    <small class="text-muted">{{ item.homework.subject.name }} | {{
+                        item.homework.teacher.get_full_name|default:item.homework.teacher.username }}</small>
+                </div>
+                <a href="{% url 'submit_homework' item.homework.id %}" class="btn btn-sm btn-warning">Resubmit</a>
+            </div>
+            {% endfor %}
+            {% if resubmit_count > 3 %}
+            <small class="text-muted d-block mt-2">And {{ resubmit_count|add:"-3" }} more pending resubmission item{{
+                resubmit_count|add:"-3"|pluralize }}.</small>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-event me-1"></i> Upcoming Homework</h5>
+                <a href="{% url 'student_homework' %}" class="btn btn-sm btn-primary">Open Full List</a>
+            </div>
+
+            {% if upcoming_homework %}
+            {% for item in upcoming_homework %}
+            <div
+                class="sd-timeline-item d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center">
+                <div>
+                    <div class="fw-semibold">{{ item.homework.title }}</div>
+                    <small class="text-muted">{{ item.homework.subject.name }} | Due
+                        <time class="js-local-datetime" datetime="{{ item.homework.deadline|date:'c' }}">
+                            {{ item.homework.deadline|date:"M d, Y h:i A" }}
+                        </time>
+                    </small>
+                </div>
+                <div>
+                    {% if item.submission %}
+                    {% if item.submission.approval_status == 'approved' and item.submission.is_completed %}
+                    <span class="badge bg-success sd-status">Approved</span>
+                    {% elif item.submission.approval_status == 'resubmit' %}
+                    <span class="badge bg-warning text-dark sd-status">Resubmit</span>
+                    {% elif item.submission.approval_status == 'pending' %}
+                    <span class="badge bg-info text-dark sd-status">Under Review</span>
+                    {% else %}
+                    <span class="badge bg-secondary sd-status">{{ item.submission.get_approval_status_display }}</span>
+                    {% endif %}
+                    {% else %}
+                    <span class="badge bg-danger sd-status">Not Submitted</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-check2-circle display-5 text-success"></i>
+                <p class="mt-3 mb-0">No upcoming homework at the moment.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<div class="modal fade" id="moodCheckInModal" tabindex="-1" aria-labelledby="moodCheckInLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header sd-modal-header text-white border-0">
+                <h5 class="modal-title fw-bold" id="moodCheckInLabel"><i class="bi bi-emoji-smile me-1"></i> Daily Mood
+                    Check-In</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <p class="text-muted mb-3">Share how you feel today so your workload can be better balanced.</p>
+
+                    <label class="form-label fw-semibold mb-2">Select Mood</label>
+                    <div class="row g-2 mb-3">
+                        {% for value, label in mood_form.mood.field.choices %}
+                        <div class="col-6">
+                            <label class="sd-mood-option">
+                                <input type="radio" name="mood" value="{{ value }}" required>
+                                <span>{{ label }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <label for="moodNotes" class="form-label fw-semibold">Notes (Optional)</label>
+                    <textarea id="moodNotes" name="notes" class="form-control" rows="3"
+                        placeholder="Anything you want to add?"></textarea>
+
+                    <div class="d-grid mt-3">
+                        <button class="btn btn-primary" type="submit">Submit Mood</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="anonymousReportModal" tabindex="-1" aria-labelledby="anonymousReportLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header sd-modal-header text-white border-0">
+                <h5 class="modal-title fw-bold" id="anonymousReportLabel">
+                    <i class="bi bi-shield-lock me-1"></i> Safety & Support Report
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-3">
+                    Keep the toggle enabled to report anonymously, or disable it to message admin with your identity.
+                </p>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="anonymous_report_submit" value="1">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Concern Type</label>
+                            {{ anonymous_report_form.report_type }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Reported About</label>
+                            {{ anonymous_report_form.target_role }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Person Name (Optional)</label>
+                            {{ anonymous_report_form.reported_person }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Class/Section (Optional)</label>
+                            {{ anonymous_report_form.class_section_info }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Severity</label>
+                            {{ anonymous_report_form.severity }}
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                {{ anonymous_report_form.is_anonymous }}
+                                <label class="form-check-label fw-semibold"
+                                    for="{{ anonymous_report_form.is_anonymous.id_for_label }}">
+                                    Report anonymously
+                                </label>
+                                <div class="small text-muted">Turn off to share your identity with admin.</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Details</label>
+                            {{ anonymous_report_form.details }}
+                            {% if anonymous_report_form.details.errors %}
+                            <div class="text-danger small mt-1">{{ anonymous_report_form.details.errors|join:", " }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-grid mt-3">
+                        <button class="btn btn-danger" type="submit">Send Report</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if show_mood_popup %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var modalElement = document.getElementById('moodCheckInModal');
+        if (modalElement) {
+            var modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    });
+</script>
+{% endif %}
+
+{% if anonymous_report_form.errors %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var reportModalEl = document.getElementById('anonymousReportModal');
+        if (reportModalEl) {
+            var reportModal = new bootstrap.Modal(reportModalEl);
+            reportModal.show();
+        }
+    });
+</script>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.js-local-datetime').forEach(function (el) {
+            var isoValue = el.getAttribute('datetime');
+            var dt = new Date(isoValue);
+            if (!isNaN(dt.getTime())) {
+                el.textContent = dt.toLocaleString([], {
+                    month: 'short',
+                    day: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            }
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const moodButtons = Array.from(document.querySelectorAll('.wc-mood-btn'));
+        const chatBox = document.getElementById('wcChatBox');
+        const typing = document.getElementById('wcTyping');
+        const input = document.getElementById('wcInput');
+        const sendBtn = document.getElementById('wcSendBtn');
+        const chatEndpoint = "{% url 'wellness_counselor_chat' %}";
+        let selectedMood = '';
+        let wcLoading = false;
+        let conversation = [];
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return '';
+        }
+
+        function scrollChatBottom() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function addMessage(text, role) {
+            const row = document.createElement('div');
+            row.className = `wc-chat-msg ${role === 'user' ? 'wc-user' : 'wc-bot'}`;
+            row.textContent = text;
+            chatBox.appendChild(row);
+            scrollChatBottom();
+        }
+
+        function setLoading(value) {
+            wcLoading = value;
+            typing.classList.toggle('show', value);
+            sendBtn.disabled = value || !input.value.trim() || !selectedMood;
+        }
+
+        async function askCounselor(userText) {
+            conversation.push({ role: 'user', content: userText });
+            addMessage(userText, 'user');
+            setLoading(true);
+
+            try {
+                const response = await fetch(chatEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({
+                        mood: selectedMood,
+                        messages: conversation,
+                    }),
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    addMessage(data.error || 'Unable to get a response right now.', 'bot');
+                } else {
+                    const reply = data.reply || 'I am here with you.';
+                    conversation.push({ role: 'assistant', content: reply });
+                    addMessage(reply, 'bot');
+                }
+            } catch (e) {
+                addMessage('Network issue. Please try again.', 'bot');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        moodButtons.forEach(btn => {
+            btn.addEventListener('click', function () {
+                moodButtons.forEach(x => x.classList.remove('active'));
+                btn.classList.add('active');
+                selectedMood = btn.dataset.mood || '';
+                conversation = [];
+                chatBox.innerHTML = '';
+                input.value = '';
+                sendBtn.disabled = false;
+                askCounselor(`My current mood is ${selectedMood}.`);
+            });
+        });
+
+        input.addEventListener('input', function () {
+            sendBtn.disabled = wcLoading || !input.value.trim() || !selectedMood;
+        });
+
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendBtn.click();
+            }
+        });
+
+        sendBtn.addEventListener('click', function () {
+            const text = input.value.trim();
+            if (!text || wcLoading || !selectedMood) return;
+            input.value = '';
+            sendBtn.disabled = true;
+            askCounselor(text);
+        });
+    });
+</script>
+
+{% endif %}
+{% endblock %}

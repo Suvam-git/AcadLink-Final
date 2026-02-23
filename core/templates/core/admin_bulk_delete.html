@@ -1,0 +1,289 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="bi bi-trash-fill"></i> Bulk Delete Users</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-danger">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Critical Warning
+                        </h5>
+                        <hr>
+                        <p class="mb-0"><strong>This action is PERMANENT and cannot be undone!</strong></p>
+                        <p class="mb-0 mt-2">All related data (homework, submissions, mood entries) will also be deleted.</p>
+                    </div>
+
+                    <!-- Statistics -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white text-center">
+                                <div class="card-body">
+                                    <h2 class="mb-0">{{ teachers_count }}</h2>
+                                    <small>Teachers</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white text-center">
+                                <div class="card-body">
+                                    <h2 class="mb-0">{{ students_count }}</h2>
+                                    <small>Students</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-dark text-center">
+                                <div class="card-body">
+                                    <h2 class="mb-0">{{ pending_count }}</h2>
+                                    <small>Pending</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-secondary text-white text-center">
+                                <div class="card-body">
+                                    <h2 class="mb-0">{{ total_count }}</h2>
+                                    <small>Total</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h5 class="mb-3">Choose what to delete:</h5>
+
+                    <!-- Delete All Teachers -->
+                    <div class="card mb-3 border-primary">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="bi bi-person-badge text-primary"></i> Delete All Teachers
+                                    </h6>
+                                    <p class="mb-0 text-muted">
+                                        Will delete {{ teachers_count }} teacher account(s) and all their homework
+                                    </p>
+                                </div>
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmTeachers">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delete All Students -->
+                    <div class="card mb-3 border-info">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="bi bi-person text-info"></i> Delete All Students
+                                    </h6>
+                                    <p class="mb-0 text-muted">
+                                        Will delete {{ students_count }} student account(s) and all their submissions
+                                    </p>
+                                </div>
+                                <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#confirmStudents">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delete Pending Users Only -->
+                    <div class="card mb-3 border-warning">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="bi bi-clock text-warning"></i> Delete Pending Users Only
+                                    </h6>
+                                    <p class="mb-0 text-muted">
+                                        Will delete {{ pending_count }} unapproved account(s)
+                                    </p>
+                                </div>
+                                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#confirmPending">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delete All Users -->
+                    <div class="card mb-3 border-danger">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="bi bi-exclamation-triangle text-danger"></i> Delete ALL Teachers & Students
+                                    </h6>
+                                    <p class="mb-0 text-muted">
+                                        Will delete ALL {{ total_count }} user accounts (teachers + students)
+                                    </p>
+                                </div>
+                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmAll">
+                                    <i class="bi bi-trash-fill"></i> Delete All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-grid">
+                        <a href="{% url 'manage_users' %}" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-arrow-left"></i> Back to Manage Users
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modals -->
+
+<!-- Delete Teachers Modal -->
+<div class="modal fade" id="confirmTeachers" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Confirm Delete All Teachers</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Are you absolutely sure?</strong></p>
+                <p>This will permanently delete:</p>
+                <ul>
+                    <li>{{ teachers_count }} teacher accounts</li>
+                    <li>All homework created by these teachers</li>
+                    <li>All submissions for their homework</li>
+                    <li>All reviews and feedback</li>
+                </ul>
+                <p class="text-danger"><strong>This action CANNOT be undone!</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="delete_type" value="all_teachers">
+                    <button type="submit" class="btn btn-primary">Yes, Delete All Teachers</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Students Modal -->
+<div class="modal fade" id="confirmStudents" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Confirm Delete All Students</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Are you absolutely sure?</strong></p>
+                <p>This will permanently delete:</p>
+                <ul>
+                    <li>{{ students_count }} student accounts</li>
+                    <li>All homework submissions</li>
+                    <li>All mood entries</li>
+                    <li>All progress records</li>
+                </ul>
+                <p class="text-danger"><strong>This action CANNOT be undone!</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="delete_type" value="all_students">
+                    <button type="submit" class="btn btn-info">Yes, Delete All Students</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Pending Modal -->
+<div class="modal fade" id="confirmPending" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Confirm Delete Pending Users</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Are you sure?</strong></p>
+                <p>This will delete {{ pending_count }} pending (unapproved) user accounts.</p>
+                <p class="text-danger"><strong>This action cannot be undone!</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="delete_type" value="pending_only">
+                    <button type="submit" class="btn btn-warning">Yes, Delete Pending Users</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete All Modal -->
+<div class="modal fade" id="confirmAll" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirm Delete ALL Users</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong class="text-danger">CRITICAL WARNING!</strong></p>
+                <p>This will permanently delete:</p>
+                <ul>
+                    <li><strong>{{ teachers_count }} teachers</strong></li>
+                    <li><strong>{{ students_count }} students</strong></li>
+                    <li>All homework and submissions</li>
+                    <li>All mood entries and notifications</li>
+                    <li>ALL user data</li>
+                </ul>
+                <p class="text-danger"><strong>THIS WILL ERASE EVERYTHING! CANNOT BE UNDONE!</strong></p>
+                <p>Type <code>DELETE ALL</code> to confirm:</p>
+                <input type="text" id="confirmText" class="form-control" placeholder="Type DELETE ALL">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" style="display: inline;" onsubmit="return confirmDeleteAll()">
+                    {% csrf_token %}
+                    <input type="hidden" name="delete_type" value="all_users">
+                    <button type="submit" class="btn btn-danger" id="deleteAllBtn" disabled>Yes, Delete Everything</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Enable delete all button only when correct text is entered
+document.getElementById('confirmText')?.addEventListener('input', function(e) {
+    const btn = document.getElementById('deleteAllBtn');
+    if (e.target.value === 'DELETE ALL') {
+        btn.disabled = false;
+    } else {
+        btn.disabled = true;
+    }
+});
+
+function confirmDeleteAll() {
+    return document.getElementById('confirmText').value === 'DELETE ALL';
+}
+</script>
+
+{% endblock %}

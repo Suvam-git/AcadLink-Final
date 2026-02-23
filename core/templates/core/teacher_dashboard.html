@@ -1,0 +1,430 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Teacher Dashboard - Acadlink{% endblock %}
+
+{% block content %}
+
+
+<div class="page-hero text-white p-4 p-md-5 mb-4 shadow-sm">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+        <div>
+            <h2 class="mb-1 fw-bold">Teacher Workspace</h2>
+            <p class="mb-0 opacity-75">Plan class workload, review submissions, and guide students.</p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            {% if current_assignment %}
+            <span class="page-chip">{{ current_assignment.class_name.name }} - {{ current_assignment.section.name }}</span>
+            {% endif %}
+            <span class="page-chip"><i class="bi bi-hourglass-split"></i> {{ total_submissions_pending }} Pending
+                Reviews</span>
+            <span class="page-chip"><i class="bi bi-envelope"></i> {{ unread_parent_messages }} Messages</span>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 align-items-center mb-4">
+    <a href="{% url 'teacher_messages' %}" class="btn btn-outline-primary position-relative">
+        <i class="bi bi-envelope"></i> Messages
+        {% if unread_parent_messages > 0 %}
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            {{ unread_parent_messages }}
+        </span>
+        {% endif %}
+    </a>
+
+    {% if teacher_assignments %}
+    <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" id="classSelector" data-bs-toggle="dropdown">
+            <i class="bi bi-building me-2"></i>
+            {% if current_assignment %}
+            {{ current_assignment.class_name.name }} - Section {{ current_assignment.section.name }}
+            {% else %}
+            Select Class
+            {% endif %}
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="classSelector">
+            {% for assignment in teacher_assignments %}
+            <li>
+                <a class="dropdown-item {% if current_assignment.id == assignment.id %}active{% endif %}"
+                    href="{% url 'switch_teacher_class' assignment.id %}">
+                    <i class="bi bi-building me-2"></i>
+                    {{ assignment.class_name.name }} - Section {{ assignment.section.name }}
+                    {% if assignment.is_primary %}
+                    <span class="badge bg-primary ms-2">Primary</span>
+                    {% endif %}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+
+{% if not current_assignment %}
+<div class="alert alert-warning">
+    <h5 class="alert-heading">No Class Assigned</h5>
+    <p class="mb-0">Please contact the administrator to get assigned to classes.</p>
+</div>
+{% else %}
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card metric-card h-100">
+            <div class="card-body">
+                <p class="metric-label mb-1">Homework Created</p>
+                <h2 class="fw-bold mb-0 text-primary">{{ total_homework_created }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card metric-card h-100">
+            <div class="card-body">
+                <p class="metric-label mb-1">Pending Submissions</p>
+                <h2 class="fw-bold mb-0 text-warning">{{ total_submissions_pending }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card metric-card h-100">
+            <div class="card-body">
+                <p class="metric-label mb-1">Total Students</p>
+                <h2 class="fw-bold mb-0 text-info">{{ total_students }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card metric-card h-100">
+            <div class="card-body">
+                <p class="metric-label mb-1">Parent Messages</p>
+                <h2 class="fw-bold mb-0 text-success">{{ unread_parent_messages }}</h2>
+                <small class="text-muted">Unread</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Workload Overview -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header themed-card-header">
+                <h5 class="mb-0 fw-bold">Today's Workload</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>{{ workload_stats.daily_workload_mins }} / {{ workload_stats.daily_limit_mins }}
+                        minutes</span>
+                    <span class="badge {% if workload_stats.daily_exceeded %}bg-danger{% else %}bg-success{% endif %}">
+                        {{ workload_stats.daily_percentage }}%
+                    </span>
+                </div>
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar {% if workload_stats.daily_exceeded %}bg-danger{% else %}bg-success{% endif %}"
+                        style="width: {{ workload_stats.daily_percentage|floatformat:0 }}%">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header themed-card-header">
+                <h5 class="mb-0 fw-bold">This Week's Workload</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>{{ workload_stats.weekly_workload_mins }} / {{ workload_stats.weekly_limit_mins }}
+                        minutes</span>
+                    <span class="badge {% if workload_stats.weekly_exceeded %}bg-danger{% else %}bg-success{% endif %}">
+                        {{ workload_stats.weekly_percentage }}%
+                    </span>
+                </div>
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar {% if workload_stats.weekly_exceeded %}bg-danger{% else %}bg-info{% endif %}"
+                        style="width: {{ workload_stats.weekly_percentage|floatformat:0 }}%">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Workload Suggestions -->
+<div class="card mb-4">
+    <div class="card-header themed-card-header">
+        <i class="bi bi-lightbulb me-1 text-primary"></i> Workload Suggestions
+    </div>
+    <div class="card-body pb-1">
+        {% for s in workload_suggestions %}
+        <div class="alert alert-{{ s.type }} border-0 d-flex align-items-start gap-2 mb-2">
+            <div class="flex-grow-1">
+                <strong class="d-block mb-1">{{ s.title }}</strong>
+                <span class="fw-medium">{{ s.message }}</span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-info border-0 mb-2">
+            <strong>Workload Suggestions</strong><br>
+            <span class="fw-medium">No suggestions available yet. Create or review homework to generate
+                recommendations.</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- My Homework & Other Teachers' Homework -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header themed-card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-file-text"></i> My Recent Homework
+                </h5>
+                <a href="{% url 'create_homework' %}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create New
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if my_homework %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Title</th>
+                                <th>Subject</th>
+                                <th>Deadline</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hw in my_homework %}
+                            <tr>
+                                <td>
+                                    <strong>{{ hw.title }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ hw.subject.name }}</span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        <time class="js-local-datetime" datetime="{{ hw.deadline|date:'c' }}">
+                                            {{ hw.deadline|date:"M d, Y h:i A" }}
+                                        </time>
+                                    </small><br>
+                                    <small class="text-muted">{% widthratio hw.estimated_hours 1 60 %} min</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a href="{% url 'edit_homework' hw.id %}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil-square"></i> Edit
+                                        </a>
+                                        <a href="{% url 'delete_homework' hw.id %}"
+                                            class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox display-4 opacity-25"></i>
+                    <p class="mt-3 mb-0">No homework created yet.</p>
+                    <a href="{% url 'create_homework' %}" class="btn btn-primary mt-3">
+                        <i class="bi bi-plus-circle"></i> Create Your First Homework
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header themed-card-header">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-people"></i> Other Teachers' Homework
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if all_class_homework %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Title</th>
+                                <th>Teacher</th>
+                                <th>Deadline</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hw in all_class_homework %}
+                            <tr>
+                                <td>
+                                    <strong>{{ hw.title }}</strong><br>
+                                    <small class="text-muted">{{ hw.subject.name }}</small>
+                                </td>
+                                <td>
+                                    <small>{{ hw.teacher.get_full_name|default:hw.teacher.username }}</small>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        <time class="js-local-datetime" datetime="{{ hw.deadline|date:'c' }}">
+                                            {{ hw.deadline|date:"M d, Y h:i A" }}
+                                        </time>
+                                    </small><br>
+                                    <small class="text-muted">{% widthratio hw.estimated_hours 1 60 %} min</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox display-4 opacity-25"></i>
+                    <p class="mt-3 mb-0">No other homework for this class.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Submissions -->
+<div class="card">
+    <div class="card-header themed-card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-clock-history"></i> Pending Submissions
+        </h5>
+        <a href="{% url 'review_submissions' %}" class="btn btn-sm btn-outline-primary">
+            View All
+        </a>
+    </div>
+    <div class="card-body p-0">
+        {% if pending_submissions %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student</th>
+                        <th>Homework</th>
+                        <th>Submitted</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sub in pending_submissions %}
+                    <tr>
+                        <td>
+                            <strong>{{ sub.student.get_full_name|default:sub.student.username }}</strong>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ sub.homework.title }}</small>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ sub.submitted_at|date:"M d, H:i" }}</small>
+                        </td>
+                        <td>
+                            <a href="{% url 'review_submission_detail' sub.id %}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-eye"></i> Review
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-check-circle display-4 text-success opacity-25"></i>
+            <p class="mt-3 mb-0">No pending submissions.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Homework History -->
+<div class="card mb-4">
+    <div class="card-header themed-card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-clock-history"></i> Homework History
+        </h5>
+        {% if history_count > 0 %}
+        <form method="post" action="{% url 'clear_homework_history' %}" class="m-0">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger"
+                onclick="return confirm('Clear all homework history for this class?');">
+                <i class="bi bi-trash"></i> Clear History
+            </button>
+        </form>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        {% if homework_history %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Subject</th>
+                        <th>Deadline</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for hw in homework_history %}
+                    <tr>
+                        <td><strong>{{ hw.title }}</strong></td>
+                        <td><span class="badge bg-secondary">{{ hw.subject.name }}</span></td>
+                        <td>
+                            <small class="text-muted">
+                                <time class="js-local-datetime" datetime="{{ hw.deadline|date:'c' }}">
+                                    {{ hw.deadline|date:"M d, Y h:i A" }}
+                                </time>
+                            </small>
+                        </td>
+                        <td><span class="badge bg-dark">Passed Deadline</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-archive display-4 opacity-25"></i>
+            <p class="mt-3 mb-0">No homework history yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.js-local-datetime').forEach(function (el) {
+            var isoValue = el.getAttribute('datetime');
+            var dt = new Date(isoValue);
+            if (!isNaN(dt.getTime())) {
+                el.textContent = dt.toLocaleString([], {
+                    month: 'short',
+                    day: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            }
+        });
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Review Section Change Request - Acadlink{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-primary text-white border-0">
+                    <h4 class="mb-0 fw-bold">
+                        <i class="bi bi-clipboard-check"></i> Review Section Change Request
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <!-- Student Info -->
+                    <div class="alert alert-info border-0 mb-4">
+                        <h6 class="fw-bold mb-2">Student Information:</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Name:</strong> {{ change_request.student.get_full_name|default:change_request.student.username }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Username:</strong> {{ change_request.student.username }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Change Details -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0 fw-bold">Change Details</h6>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless mb-0">
+                                <tr>
+                                    <td class="fw-bold" style="width: 180px;">Class:</td>
+                                    <td><span class="badge bg-secondary">{{ change_request.student.class_assigned.name }}</span> (Stays the Same)</td>
+                                </tr>
+                                <tr class="border-top">
+                                    <td class="fw-bold pt-3">Current Section:</td>
+                                    <td class="pt-3">{{ change_request.current_section.name|default:'Not Assigned' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold text-primary">Requested Section:</td>
+                                    <td class="text-primary"><strong>{{ change_request.requested_section.name }}</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Student's Reason -->
+                    {% if change_request.reason %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0 fw-bold">Student's Reason</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0">{{ change_request.reason }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Request Info -->
+                    <div class="mb-4">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar"></i> Requested on: {{ change_request.requested_at|date:"M d, Y H:i" }}
+                        </small>
+                    </div>
+
+                    <!-- Decision Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="admin_response" class="form-label fw-bold">Your Response to Student (Optional):</label>
+                            <textarea name="admin_response" 
+                                      id="admin_response" 
+                                      class="form-control" 
+                                      rows="4" 
+                                      placeholder="Optional: Explain your decision to the student"></textarea>
+                            <small class="form-text text-muted">
+                                The student will see this message after you approve or reject their request.
+                            </small>
+                        </div>
+
+                        <div class="alert alert-warning border-0 mb-4">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <strong>Note:</strong> If you approve this request, the student will be immediately moved to Section {{ change_request.requested_section.name }}. Their class ({{ change_request.student.class_assigned.name }}) will remain unchanged.
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" name="action" value="approved" class="btn btn-success flex-grow-1">
+                                <i class="bi bi-check-circle-fill"></i> Approve Request
+                            </button>
+                            <button type="submit" name="action" value="rejected" class="btn btn-danger flex-grow-1">
+                                <i class="bi bi-x-circle-fill"></i> Reject Request
+                            </button>
+                            <a href="{% url 'manage_section_change_requests' %}" class="btn btn-outline-secondary flex-grow-1">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

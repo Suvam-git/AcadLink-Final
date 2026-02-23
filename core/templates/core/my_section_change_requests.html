@@ -1,0 +1,83 @@
+{% extends 'core/base.html' %}
+
+{% block title %}My Section Change Requests - Acadlink{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0 fw-bold">My Section Change Requests</h2>
+        <a href="{% url 'student_profile' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Profile
+        </a>
+    </div>
+
+    {% if requests %}
+        <div class="row">
+            {% for req in requests %}
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold">Request #{{ req.id }}</h6>
+                            {% if req.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% elif req.status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% else %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Class:</strong> {{ req.student.class_assigned.name }}<br>
+                            <strong>From Section:</strong> {{ req.current_section.name|default:'N/A' }}<br>
+                            <strong>To Section:</strong> {{ req.requested_section.name }}
+                        </div>
+                        
+                        {% if req.reason %}
+                        <div class="mb-3">
+                            <strong>Your Reason:</strong>
+                            <p class="text-muted mb-0">{{ req.reason }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> Requested: {{ req.requested_at|date:"M d, Y H:i" }}
+                            </small>
+                        </div>
+                        
+                        {% if req.status != 'pending' %}
+                        {% if req.status == 'approved' %}
+                        <div class="alert alert-success border-0 mb-0 mt-3">
+                        {% else %}
+                        <div class="alert alert-danger border-0 mb-0 mt-3">
+                        {% endif %}
+                            <strong>Admin Response:</strong>
+                            <p class="mb-1">{{ req.admin_response|default:"No response provided." }}</p>
+                            <small class="text-muted">
+                                Reviewed by {{ req.reviewed_by.get_full_name|default:req.reviewed_by.username }} 
+                                on {{ req.reviewed_at|date:"M d, Y H:i" }}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <h5 class="mt-3 text-muted">No Section Change Requests Yet</h5>
+                <p class="text-muted">You haven't submitted any section change requests.</p>
+                <a href="{% url 'request_section_change' %}" class="btn btn-warning">
+                    <i class="bi bi-shuffle"></i> Request Section Change
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

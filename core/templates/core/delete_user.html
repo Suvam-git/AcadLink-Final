@@ -1,0 +1,81 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="bi bi-trash-fill"></i> Delete User</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-danger">
+                        <h5 class="alert-heading">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Warning: Permanent Action
+                        </h5>
+                        <hr>
+                        <p class="mb-0">You are about to permanently delete this user. This action cannot be undone!</p>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">User Information</h5>
+                            <hr>
+                            <p class="mb-2"><strong>Username:</strong> {{ user_to_delete.username }}</p>
+                            <p class="mb-2"><strong>Name:</strong> {{ user_to_delete.get_full_name|default:"N/A" }}</p>
+                            <p class="mb-2"><strong>Email:</strong> {{ user_to_delete.email }}</p>
+                            <p class="mb-2"><strong>Role:</strong> 
+                                {% if user_to_delete.role == 'teacher' %}
+                                    <span class="badge bg-primary">Teacher</span>
+                                {% elif user_to_delete.role == 'student' %}
+                                    <span class="badge bg-info">Student</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ user_to_delete.role }}</span>
+                                {% endif %}
+                            </p>
+                            <p class="mb-0">
+                                <strong>Class/Section:</strong>
+                                {% if user_to_delete.role == 'teacher' and user_to_delete.teacher_class %}
+                                    {{ user_to_delete.teacher_class.name }} - Section {{ user_to_delete.teacher_section.name }}
+                                {% elif user_to_delete.role == 'student' and user_to_delete.class_assigned %}
+                                    {{ user_to_delete.class_assigned.name }} - Section {{ user_to_delete.section_assigned.name }}
+                                {% else %}
+                                    <span class="text-muted">Not assigned</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <p class="mb-0"><strong>This will also delete:</strong></p>
+                        <ul class="mb-0 mt-2">
+                            {% if user_to_delete.role == 'teacher' %}
+                                <li>All homework created by this teacher</li>
+                                <li>All submissions for their homework</li>
+                                <li>All reviews and feedback given</li>
+                            {% elif user_to_delete.role == 'student' %}
+                                <li>All homework submissions by this student</li>
+                                <li>All mood entries</li>
+                                <li>All progress records</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="bi bi-trash-fill"></i> Yes, Delete User Permanently
+                            </button>
+                            <a href="{% url 'manage_users' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

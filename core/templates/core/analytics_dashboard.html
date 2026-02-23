@@ -1,0 +1,354 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Analytics Dashboard - Acadlink{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-kpi {
+        border: 1px solid var(--border-color);
+        border-radius: 0.95rem;
+        background: var(--surface-color);
+        box-shadow: var(--shadow-soft);
+        padding: 1rem 1.1rem;
+        height: 100%;
+    }
+
+    .kpi-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 0.7rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.05rem;
+        margin-bottom: 0.75rem;
+        background: #eef5f8;
+        color: var(--primary-color);
+    }
+
+    .metric-value {
+        font-size: 1.85rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 0.35rem;
+    }
+
+    .metric-note {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    .analytics-subtitle {
+        color: rgba(255, 255, 255, 0.85);
+        max-width: 760px;
+    }
+
+    .quality-pill {
+        border: 1px solid var(--border-color);
+        border-radius: 0.7rem;
+        padding: 0.65rem 0.75rem;
+        background: #f6fafc;
+    }
+
+    .quality-pill .label {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-bottom: 0.2rem;
+        font-weight: 700;
+    }
+
+    .quality-pill .value {
+        font-size: 1.1rem;
+        font-weight: 800;
+        margin: 0;
+        color: var(--dark-color);
+    }
+
+    .insight-card {
+        background: #f5fafc;
+        border: 1px solid var(--border-color);
+        border-radius: 0.85rem;
+        padding: 0.95rem;
+    }
+
+    .workload-chip {
+        border-radius: 999px;
+        padding: 0.2rem 0.55rem;
+        font-size: 0.74rem;
+        font-weight: 700;
+        border: 1px solid transparent;
+    }
+
+    .table thead th {
+        white-space: nowrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-hero p-4 p-md-5 mb-4 shadow-sm">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+        <div>
+            <span class="metric-label d-block mb-1" style="color: rgba(255,255,255,0.72);">Admin Analytics</span>
+            <h2 class="fw-bold mb-1 text-white">Platform Performance Dashboard</h2>
+            <p class="mb-0 analytics-subtitle">Monitor workload balance, review quality, and student wellbeing with a cleaner system-wide overview.</p>
+        </div>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-light flex-shrink-0">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<section class="mb-4">
+    <div class="row g-3">
+        <div class="col-md-6 col-xl-3">
+            <div class="analytics-kpi">
+                <span class="kpi-icon"><i class="bi bi-mortarboard-fill"></i></span>
+                <p class="metric-label mb-0">Total students</p>
+                <h2 class="metric-value text-primary">{{ total_students }}</h2>
+                <p class="metric-note">Approved student accounts</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="analytics-kpi">
+                <span class="kpi-icon"><i class="bi bi-person-workspace"></i></span>
+                <p class="metric-label mb-0">Total teachers</p>
+                <h2 class="metric-value text-success">{{ total_teachers }}</h2>
+                <p class="metric-note">Approved teacher accounts</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="analytics-kpi">
+                <span class="kpi-icon"><i class="bi bi-journal-check"></i></span>
+                <p class="metric-label mb-0">Total assignments</p>
+                <h2 class="metric-value text-dark">{{ total_homework }}</h2>
+                <p class="metric-note">All assignment records</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="analytics-kpi">
+                <span class="kpi-icon"><i class="bi bi-hourglass-split"></i></span>
+                <p class="metric-label mb-0">Open assignments</p>
+                <h2 class="metric-value text-warning">{{ active_homework }}</h2>
+                <p class="metric-note">Currently active workload</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header themed-card-header">
+                <h5 class="mb-0"><i class="bi bi-pie-chart me-1"></i> Assignment Status Breakdown</h5>
+            </div>
+            <div class="card-body">
+                <div style="height: 260px;">
+                    <canvas id="homeworkStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header themed-card-header">
+                <h5 class="mb-0"><i class="bi bi-check2-square me-1"></i> Submission Quality</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <div class="quality-pill">
+                            <p class="label">Total</p>
+                            <p class="value">{{ total_submissions }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="quality-pill">
+                            <p class="label">Approved</p>
+                            <p class="value text-success">{{ approved_pct }}%</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="quality-pill">
+                            <p class="label">Pending</p>
+                            <p class="value text-warning">{{ pending_pct }}%</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="fw-semibold">Approved</span>
+                        <strong>{{ approved_submissions }} ({{ approved_pct }}%)</strong>
+                    </div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-success" style="width: {{ approved_pct }}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="fw-semibold">Pending review</span>
+                        <strong>{{ pending_submissions }} ({{ pending_pct }}%)</strong>
+                    </div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-warning" style="width: {{ pending_pct }}%"></div>
+                    </div>
+                </div>
+                <div class="insight-card mt-3">
+                    <small class="text-muted d-block">Focus area</small>
+                    <strong>Reduce pending reviews quickly to keep student feedback timely and consistent.</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="row g-3 mb-4">
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header themed-card-header">
+                <h5 class="mb-0"><i class="bi bi-heart-pulse me-1"></i> Student Wellbeing</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span>Total mood entries</span>
+                    <strong>{{ total_mood_entries }}</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span>Negative entries</span>
+                    <strong class="text-danger">{{ bad_mood_count }}</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span>Negative mood ratio</span>
+                    <strong>{{ bad_mood_pct }}%</strong>
+                </div>
+                <div class="alert alert-info mt-3 mb-0 py-2">
+                    Track this ratio weekly to identify classes that may need extra support.
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header themed-card-header">
+                <h5 class="mb-0"><i class="bi bi-list-check me-1"></i> Assignment Lifecycle</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <div class="metric-card">
+                            <p class="metric-label mb-0">Active</p>
+                            <h3 class="metric-value text-primary">{{ active_homework }}</h3>
+                            <p class="metric-note">Awaiting completion</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="metric-card">
+                            <p class="metric-label mb-0">Completed</p>
+                            <h3 class="metric-value text-success">{{ completed_homework }}</h3>
+                            <p class="metric-note">Closed assignments</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="metric-card">
+                            <p class="metric-label mb-0">Overdue</p>
+                            <h3 class="metric-value text-danger">{{ overdue_homework }}</h3>
+                            <p class="metric-note">Past due assignments</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="insight-card mt-3">
+                    <small class="text-muted d-block">Operations note</small>
+                    {% if overdue_homework > 0 %}
+                    <strong>{{ overdue_homework }} overdue assignment{{ overdue_homework|pluralize }} need closure or cleanup.</strong>
+                    {% else %}
+                    <strong>No overdue backlog. Lifecycle hygiene is healthy.</strong>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section>
+    <div class="card">
+        <div class="card-header themed-card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-bar-chart-line me-1"></i> Workload by Class and Section</h5>
+            <small class="text-muted">Daily and weekly estimated workload hours</small>
+        </div>
+        <div class="card-body">
+            {% if class_workload %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Class</th>
+                            <th>Section</th>
+                            <th>Daily Workload</th>
+                            <th>Weekly Workload</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in class_workload %}
+                        <tr>
+                            <td class="fw-semibold">{{ item.class_name }}</td>
+                            <td>{{ item.section }}</td>
+                            <td>{{ item.daily_workload }}h</td>
+                            <td>{{ item.weekly_workload }}h</td>
+                            <td>
+                                {% if item.weekly_workload > 15 %}
+                                <span class="workload-chip bg-danger-subtle text-danger border-danger-subtle">High</span>
+                                {% elif item.weekly_workload > 10 %}
+                                <span class="workload-chip bg-warning-subtle text-warning border-warning-subtle">Watch</span>
+                                {% else %}
+                                <span class="workload-chip bg-success-subtle text-success border-success-subtle">Balanced</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center mb-0">No workload data available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const homeworkData = {
+        labels: ['Active', 'Completed', 'Overdue'],
+        datasets: [{
+            data: [{{ active_homework }}, {{ completed_homework }}, {{ overdue_homework }}],
+    backgroundColor: [
+        'rgba(43, 108, 176, 0.82)',
+        'rgba(38, 166, 154, 0.82)',
+        'rgba(220, 82, 82, 0.82)'
+    ],
+        borderColor: '#ffffff',
+            borderWidth: 2
+        }]
+    };
+
+    new Chart(document.getElementById('homeworkStatusChart'), {
+        type: 'doughnut',
+        data: homeworkData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '58%',
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

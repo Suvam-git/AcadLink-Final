@@ -1,0 +1,211 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Manage Workload Settings - Acadlink{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Manage Workload Settings</h2>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-plus-circle"></i>
+                    {% if is_editing %}Edit Workload Limit{% else %}Add / Update Limit{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save">
+                    {% if form.instance.pk %}
+                    <input type="hidden" name="edit_id" value="{{ form.instance.pk }}">
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="scope_type" class="form-label">Scope *</label>
+                        <select id="scope_type" class="form-select" required>
+                            <option value="global">Default (Global)</option>
+                            <option value="class">Class Default (All Sections)</option>
+                            <option value="section">Class + Section Specific</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3" id="class_group" style="display: none;">
+                        <label for="{{ form.class_name.id_for_label }}" class="form-label">Class</label>
+                        {{ form.class_name }}
+                    </div>
+                    
+                    <div class="mb-3" id="section_group" style="display: none;">
+                        <label for="{{ form.section.id_for_label }}" class="form-label">Section</label>
+                        {{ form.section }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.max_daily_hours.id_for_label }}" class="form-label">Max Daily Hours *</label>
+                        {{ form.max_daily_hours }}
+                        <small class="form-text text-muted">Recommended: 2-4 hours</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.max_weekly_hours.id_for_label }}" class="form-label">Max Weekly Hours *</label>
+                        {{ form.max_weekly_hours }}
+                        <small class="form-text text-muted">Recommended: 10-20 hours</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-save"></i> Save Setting
+                    </button>
+                    {% if is_editing %}
+                    <a href="{% url 'manage_workload_settings' %}" class="btn btn-outline-secondary w-100 mt-2">
+                        Cancel Edit
+                    </a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-list"></i> Current Settings</h5>
+            </div>
+            <div class="card-body">
+                {% if settings %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Scope</th>
+                                    <th>Max Daily Hours</th>
+                                    <th>Max Weekly Hours</th>
+                                    <th>Last Updated</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for setting in settings %}
+                                    <tr>
+                                        <td>
+                                            {% if not setting.class_name %}
+                                                <strong>Default (Global)</strong>
+                                            {% elif setting.class_name and not setting.section %}
+                                                <strong>{{ setting.class_name }} (All Sections)</strong>
+                                            {% else %}
+                                                <strong>{{ setting.class_name }} - Section {{ setting.section.name }}</strong>
+                                            {% endif %}
+                                            {% if current_default and current_default.id == setting.id %}
+                                            <span class="badge bg-success ms-2">Current</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ setting.max_daily_hours }}h</td>
+                                        <td>{{ setting.max_weekly_hours }}h</td>
+                                        <td>{{ setting.updated_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                <a href="{% url 'manage_workload_settings' %}?edit={{ setting.id }}" class="btn btn-sm btn-outline-primary">
+                                                    Edit
+                                                </a>
+                                                <form method="post" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="setting_id" value="{{ setting.id }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this workload setting?');">
+                                                        Delete
+                                                    </button>
+                                                </form>
+                                                {% if not current_default or current_default.id != setting.id %}
+                                                <form method="post" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="set_current">
+                                                    <input type="hidden" name="setting_id" value="{{ setting.id }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-success">
+                                                        Set Current
+                                                    </button>
+                                                </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center mb-0">No workload settings configured yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info mt-4">
+    <h6 class="alert-heading"><i class="bi bi-info-circle"></i> Precedence Rules</h6>
+    <p class="mb-1">When calculating limits, the system checks in this order:</p>
+    <ol class="mb-2">
+        <li>Class + Section specific setting</li>
+        <li>Class default setting (all sections)</li>
+        <li>Global default setting</li>
+    </ol>
+    <p class="mb-0">If none are configured, fallback defaults are used (Daily: 3h, Weekly: 15h).</p>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const scopeSelect = document.getElementById('scope_type');
+    const classGroup = document.getElementById('class_group');
+    const sectionGroup = document.getElementById('section_group');
+    const classSelect = document.getElementById('id_class_name');
+    const sectionSelect = document.getElementById('id_section');
+    const initialScope = "{% if form.instance.pk and form.instance.class_name and form.instance.section %}section{% elif form.instance.pk and form.instance.class_name %}class{% else %}global{% endif %}";
+
+    const sectionsByClass = {
+        {% for class in classes %}
+        "{{ class.id }}": [
+            {% for section in class.sections.all %}
+            {"id": "{{ section.id }}", "name": "{{ section.name|escapejs }}"}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    function populateSections(classId) {
+        sectionSelect.innerHTML = '<option value="">---------</option>';
+        if (!classId || !sectionsByClass[classId]) return;
+        sectionsByClass[classId].forEach(function(section) {
+            const option = document.createElement('option');
+            option.value = section.id;
+            option.textContent = section.name;
+            sectionSelect.appendChild(option);
+        });
+    }
+
+    function applyScope(scope) {
+        classGroup.style.display = (scope === 'global') ? 'none' : 'block';
+        sectionGroup.style.display = (scope === 'section') ? 'block' : 'none';
+
+        if (scope === 'global') {
+            classSelect.value = '';
+            sectionSelect.value = '';
+        } else if (scope === 'class') {
+            sectionSelect.value = '';
+        }
+    }
+
+    scopeSelect.addEventListener('change', function() {
+        applyScope(this.value);
+    });
+
+    classSelect.addEventListener('change', function() {
+        const selected = sectionSelect.value;
+        populateSections(this.value);
+        sectionSelect.value = selected;
+    });
+
+    scopeSelect.value = initialScope;
+    populateSections(classSelect.value);
+    applyScope(scopeSelect.value);
+});
+</script>
+{% endblock %}

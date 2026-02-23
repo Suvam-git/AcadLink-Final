@@ -1,0 +1,70 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Delete Section - Acadlink{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-danger text-white border-0">
+                    <h4 class="mb-0 fw-bold">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Confirm Section Deletion
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-danger border-0 mb-4">
+                        <h5 class="alert-heading fw-bold">⚠️ Warning: This action cannot be undone!</h5>
+                        <p class="mb-0">Deleting this section will also delete all associated data.</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="fw-bold mb-3">Section to Delete:</h5>
+                        <div class="p-3 bg-light rounded">
+                            <h5 class="mb-1">{{ section.class_name.name }}</h5>
+                            <h4 class="mb-0 text-danger">Section {{ section.name }}</h4>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0 fw-bold">What will be affected:</h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2">
+                                    <i class="bi bi-people text-info"></i>
+                                    <strong>{{ student_count }}</strong> student{{ student_count|pluralize }} will be unassigned
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-person-badge text-warning"></i>
+                                    <strong>{{ teacher_count }}</strong> teacher{{ teacher_count|pluralize }} will be unassigned
+                                </li>
+                                <li>
+                                    <i class="bi bi-file-text text-danger"></i>
+                                    <strong>{{ homework_count }}</strong> homework assignment{{ homework_count|pluralize }} will be deleted
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <form method="post" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger flex-grow-1">
+                            <i class="bi bi-trash-fill me-2"></i>
+                            Yes, Delete This Section
+                        </button>
+                        <a href="{% url 'manage_sections' %}" class="btn btn-outline-secondary flex-grow-1">
+                            <i class="bi bi-x-circle me-2"></i>
+                            Cancel
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

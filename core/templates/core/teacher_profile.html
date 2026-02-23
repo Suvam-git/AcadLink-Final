@@ -1,0 +1,120 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Teacher Profile - Acadlink{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+
+        <!-- Profile Card -->
+        <div class="card mb-4">
+            <div class="card-header themed-card-header">
+                <h5 class="mb-0"><i class="bi bi-person-circle me-1 text-primary"></i> My Profile</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    {% if user.profile_picture %}
+                    <div class="text-center mb-4">
+                        <img src="{{ user.profile_picture.url }}" alt="Profile"
+                            class="rounded-circle border border-3 border-primary"
+                            style="width: 150px; height: 150px; object-fit: cover;">
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label fw-bold">First
+                                Name</label>
+                            {{ form.first_name }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label fw-bold">Last Name</label>
+                            {{ form.last_name }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label fw-bold">Email</label>
+                        {{ form.email }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.phone_number.id_for_label }}" class="form-label fw-bold">Phone
+                            Number</label>
+                        {{ form.phone_number }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.profile_picture.id_for_label }}" class="form-label fw-bold">Profile
+                            Picture</label>
+                        {{ form.profile_picture }}
+                    </div>
+
+                    <div class="alert alert-info border-0">
+                        <strong>Username:</strong> {{ user.username }}<br>
+                        <strong>Role:</strong> {{ user.get_role_display }}<br>
+                        <strong>Account Status:</strong>
+                        {% if user.is_approved %}
+                        <span class="badge bg-success">Approved</span>
+                        {% else %}
+                        <span class="badge bg-warning">Pending Approval</span>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Update Profile
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Teaching Assignment (Read-only) -->
+        <div class="card mb-4">
+            <div class="card-header themed-card-header">
+                <h5 class="mb-0"><i class="bi bi-briefcase me-1 text-primary"></i> Teaching Assignment</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold text-muted">Teaching Class</label>
+                        <input type="text" class="form-control"
+                            value="{{ user.teacher_class.name|default:'Not Assigned' }}" readonly>
+                        <small class="text-muted">Assigned by admin</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold text-muted">Teaching Section</label>
+                        <input type="text" class="form-control"
+                            value="{{ user.teacher_section.name|default:'Not Assigned' }}" readonly>
+                        <small class="text-muted">Assigned by admin</small>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted">Subjects You Teach</label>
+                    <div class="p-3 bg-light rounded">
+                        {% if user.subjects_taught.all %}
+                        {% for subject in user.subjects_taught.all %}
+                        <span class="badge bg-primary me-2 mb-2">{{ subject.name }}</span>
+                        {% endfor %}
+                        {% else %}
+                        <span class="text-muted">No subjects assigned</span>
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">Assigned by admin</small>
+                </div>
+
+                <div class="alert alert-info border-0">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <strong>Note:</strong> Your teaching assignments (class, section, and subjects) are managed by the
+                    administrator. Please contact the admin if you need any changes.
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

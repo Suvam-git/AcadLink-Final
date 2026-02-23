@@ -1,0 +1,158 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Set Free Time - Acadlink{% endblock %}
+
+{% block content %}
+<style>
+    .free-time-hero {
+        background: linear-gradient(130deg, #0f4c81 0%, #247ba0 45%, #2a9d8f 100%);
+        border-radius: 1rem;
+    }
+    .panel {
+        border: 0;
+        border-radius: 0.9rem;
+        box-shadow: 0 10px 28px rgba(15, 76, 129, 0.08);
+    }
+    .preset-btn {
+        border-radius: 0.75rem;
+        font-weight: 600;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="free-time-hero text-white p-4 p-md-5 mb-4 shadow-sm">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div>
+                        <h3 class="fw-bold mb-1"><i class="bi bi-clock-history me-1"></i> Manage Daily Free Time</h3>
+                        <p class="mb-0 opacity-75">Set available time for {{ student.get_full_name|default:student.username }}</p>
+                    </div>
+                    {% if student.class_assigned %}
+                    <span class="badge bg-light text-dark px-3 py-2">
+                        {{ student.class_assigned.name }} - Section {{ student.section_assigned.name }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card panel mb-4">
+                <div class="card-body p-4">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-4">
+                            <div class="text-muted small text-uppercase fw-semibold mb-1">Student</div>
+                            <div class="fw-semibold">{{ student.get_full_name|default:student.username }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted small text-uppercase fw-semibold mb-1">Current Setting</div>
+                            <div class="fw-semibold">
+                                {% if free_time %}
+                                    {{ free_time.daily_free_minutes }} minutes/day
+                                {% else %}
+                                    Not set
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted small text-uppercase fw-semibold mb-1">Last Updated</div>
+                            <div class="fw-semibold">
+                                {% if free_time %}
+                                    {{ free_time.updated_at|date:"M d, Y h:i A" }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card panel">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold">Daily Available Time</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label for="daily_free_minutes" class="form-label fw-semibold">Minutes Per Day</label>
+                            <input
+                                type="number"
+                                name="daily_free_minutes"
+                                id="daily_free_minutes"
+                                class="form-control form-control-lg text-center fw-bold"
+                                min="0"
+                                max="1440"
+                                step="5"
+                                value="{{ free_time.daily_free_minutes|default:180 }}"
+                                required>
+                            <div class="d-flex justify-content-between mt-2">
+                                <small class="text-muted">Range: 0-1440 minutes</small>
+                                <small class="text-muted" id="hoursPreview">~3h 0m</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Quick Presets</label>
+                            <div class="row g-2">
+                                <div class="col-6 col-md-3">
+                                    <button type="button" class="btn btn-outline-primary preset-btn w-100" data-minutes="120">2 Hours</button>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <button type="button" class="btn btn-outline-primary preset-btn w-100" data-minutes="180">3 Hours</button>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <button type="button" class="btn btn-outline-primary preset-btn w-100" data-minutes="240">4 Hours</button>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <button type="button" class="btn btn-outline-primary preset-btn w-100" data-minutes="300">5 Hours</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-light border mb-4">
+                            <div class="small text-muted">
+                                This value is used with today's homework workload to estimate remaining free time on the parent dashboard.
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-save"></i> Save Free Time Setting
+                            </button>
+                            <a href="{% url 'parent_dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('daily_free_minutes');
+    const preview = document.getElementById('hoursPreview');
+
+    function updatePreview() {
+        const total = parseInt(input.value || '0', 10);
+        const h = Math.floor(total / 60);
+        const m = total % 60;
+        preview.textContent = `~${h}h ${m}m`;
+    }
+
+    document.querySelectorAll('[data-minutes]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            input.value = this.getAttribute('data-minutes');
+            updatePreview();
+        });
+    });
+
+    input.addEventListener('input', updatePreview);
+    updatePreview();
+});
+</script>
+{% endblock %}

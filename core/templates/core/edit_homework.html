@@ -1,0 +1,233 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Edit Homework - Acadlink{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-pencil"></i> Edit Homework</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="client_timezone_offset" id="client_timezone_offset">
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">Title *</label>
+                        {{ form.title }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Description *</label>
+                        {{ form.description }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.subject.id_for_label }}" class="form-label">Subject *</label>
+                            {{ form.subject }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="estimated_time" class="form-label">Estimated Time *</label>
+                            <select name="estimated_hours" id="estimated_time" class="form-select" required>
+                                <option value="">-- Select Duration --</option>
+                                <option value="0.25" {% if estimated_value == "0.25" %}selected{% endif %}>15 minutes</option>
+                                <option value="0.5" {% if estimated_value == "0.5" %}selected{% endif %}>30 minutes</option>
+                                <option value="0.75" {% if estimated_value == "0.75" %}selected{% endif %}>45 minutes</option>
+                                <option value="1" {% if estimated_value == "1" %}selected{% endif %}>1 hour</option>
+                                <option value="1.25" {% if estimated_value == "1.25" %}selected{% endif %}>1 hour 15 minutes</option>
+                                <option value="1.5" {% if estimated_value == "1.5" %}selected{% endif %}>1 hour 30 minutes</option>
+                                <option value="1.75" {% if estimated_value == "1.75" %}selected{% endif %}>1 hour 45 minutes</option>
+                                <option value="2" {% if estimated_value == "2" %}selected{% endif %}>2 hours</option>
+                                <option value="2.25" {% if estimated_value == "2.25" %}selected{% endif %}>2 hours 15 minutes</option>
+                                <option value="2.5" {% if estimated_value == "2.5" %}selected{% endif %}>2 hours 30 minutes</option>
+                                <option value="2.75" {% if estimated_value == "2.75" %}selected{% endif %}>2 hours 45 minutes</option>
+                                <option value="3" {% if estimated_value == "3" %}selected{% endif %}>3 hours</option>
+                                <option value="3.25" {% if estimated_value == "3.25" %}selected{% endif %}>3 hours 15 minutes</option>
+                                <option value="3.5" {% if estimated_value == "3.5" %}selected{% endif %}>3 hours 30 minutes</option>
+                                <option value="3.75" {% if estimated_value == "3.75" %}selected{% endif %}>3 hours 45 minutes</option>
+                                <option value="4" {% if estimated_value == "4" %}selected{% endif %}>4 hours</option>
+                                <option value="4.25" {% if estimated_value == "4.25" %}selected{% endif %}>4 hours 15 minutes</option>
+                                <option value="4.5" {% if estimated_value == "4.5" %}selected{% endif %}>4 hours 30 minutes</option>
+                                <option value="4.75" {% if estimated_value == "4.75" %}selected{% endif %}>4 hours 45 minutes</option>
+                                <option value="5" {% if estimated_value == "5" %}selected{% endif %}>5 hours</option>
+                                <option value="5.5" {% if estimated_value == "5.5" %}selected{% endif %}>5 hours 30 minutes</option>
+                                <option value="6" {% if estimated_value == "6" %}selected{% endif %}>6 hours</option>
+                                <option value="6.5" {% if estimated_value == "6.5" %}selected{% endif %}>6 hours 30 minutes</option>
+                                <option value="7" {% if estimated_value == "7" %}selected{% endif %}>7 hours</option>
+                                <option value="7.5" {% if estimated_value == "7.5" %}selected{% endif %}>7 hours 30 minutes</option>
+                                <option value="8" {% if estimated_value == "8" %}selected{% endif %}>8 hours</option>
+                            </select>
+                            <small class="form-text text-muted">How long will this take to complete?</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.class_name.id_for_label }}" class="form-label">Class *</label>
+                            {{ form.class_name }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.section.id_for_label }}" class="form-label">Section *</label>
+                            {{ form.section }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.deadline.id_for_label }}" class="form-label">Deadline *</label>
+                        {{ form.deadline }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.attachment.id_for_label }}" class="form-label">Attachment</label>
+                        {{ form.attachment }}
+                        {% if homework.attachment %}
+                            <br><small class="text-muted">Current: <a href="{{ homework.attachment.url }}" target="_blank">View file</a></small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.video_url.id_for_label }}" class="form-label">Video URL</label>
+                        {{ form.video_url }}
+                    </div>
+
+                    <hr>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0 fw-bold"><i class="bi bi-patch-question"></i> Assignment Quiz (Optional)</h6>
+                            <button type="button" id="add_quiz_question_btn" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-plus-circle"></i> Add Question
+                            </button>
+                        </div>
+                        <small class="text-muted d-block mb-2">
+                            Update MCQ questions. Maximum points per question is 15.
+                        </small>
+                        <div id="quiz_questions_container">
+                            {% for q in quiz_questions %}
+                            <div class="card border mb-3 quiz-question-item">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <strong>Question {{ forloop.counter }}</strong>
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-quiz-question">Remove</button>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Question</label>
+                                        <input type="text" name="quiz_question_text[]" class="form-control" maxlength="500" value="{{ q.question_text }}">
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-md-6"><label class="form-label">Option A</label><input type="text" name="quiz_option_a[]" class="form-control" maxlength="255" value="{{ q.option_a }}"></div>
+                                        <div class="col-md-6"><label class="form-label">Option B</label><input type="text" name="quiz_option_b[]" class="form-control" maxlength="255" value="{{ q.option_b }}"></div>
+                                        <div class="col-md-6"><label class="form-label">Option C</label><input type="text" name="quiz_option_c[]" class="form-control" maxlength="255" value="{{ q.option_c }}"></div>
+                                        <div class="col-md-6"><label class="form-label">Option D</label><input type="text" name="quiz_option_d[]" class="form-control" maxlength="255" value="{{ q.option_d }}"></div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Correct Option</label>
+                                            <select name="quiz_correct_option[]" class="form-select">
+                                                <option value="A" {% if q.correct_option == 'A' %}selected{% endif %}>A</option>
+                                                <option value="B" {% if q.correct_option == 'B' %}selected{% endif %}>B</option>
+                                                <option value="C" {% if q.correct_option == 'C' %}selected{% endif %}>C</option>
+                                                <option value="D" {% if q.correct_option == 'D' %}selected{% endif %}>D</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Points (1-15)</label>
+                                            <input type="number" name="quiz_points[]" class="form-control" min="1" max="15" value="{{ q.points }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save Changes
+                        </button>
+                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var offsetField = document.getElementById('client_timezone_offset');
+    if (offsetField) {
+        offsetField.value = String(new Date().getTimezoneOffset());
+    }
+
+    var quizContainer = document.getElementById('quiz_questions_container');
+    var addBtn = document.getElementById('add_quiz_question_btn');
+    var qIndex = quizContainer ? quizContainer.querySelectorAll('.quiz-question-item').length : 0;
+
+    function questionHtml(index) {
+        return `
+        <div class="card border mb-3 quiz-question-item">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong>Question ${index + 1}</strong>
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-quiz-question">Remove</button>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Question</label>
+                    <input type="text" name="quiz_question_text[]" class="form-control" maxlength="500">
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-6"><label class="form-label">Option A</label><input type="text" name="quiz_option_a[]" class="form-control" maxlength="255"></div>
+                    <div class="col-md-6"><label class="form-label">Option B</label><input type="text" name="quiz_option_b[]" class="form-control" maxlength="255"></div>
+                    <div class="col-md-6"><label class="form-label">Option C</label><input type="text" name="quiz_option_c[]" class="form-control" maxlength="255"></div>
+                    <div class="col-md-6"><label class="form-label">Option D</label><input type="text" name="quiz_option_d[]" class="form-control" maxlength="255"></div>
+                    <div class="col-md-6">
+                        <label class="form-label">Correct Option</label>
+                        <select name="quiz_correct_option[]" class="form-select">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Points (1-15)</label>
+                        <input type="number" name="quiz_points[]" class="form-control" min="1" max="15" value="5">
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    function reindexQuestions() {
+        var cards = quizContainer.querySelectorAll('.quiz-question-item');
+        cards.forEach(function(card, idx) {
+            var title = card.querySelector('strong');
+            if (title) {
+                title.textContent = 'Question ' + (idx + 1);
+            }
+        });
+    }
+
+    if (addBtn && quizContainer) {
+        addBtn.addEventListener('click', function() {
+            quizContainer.insertAdjacentHTML('beforeend', questionHtml(qIndex));
+            qIndex += 1;
+            reindexQuestions();
+        });
+        quizContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-quiz-question')) {
+                var card = e.target.closest('.quiz-question-item');
+                if (card) {
+                    card.remove();
+                    reindexQuestions();
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

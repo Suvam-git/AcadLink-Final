@@ -1,0 +1,627 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Acadlink - Smart Workload Management App{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #1b4965;
+            --secondary-color: #2a9d8f;
+            --success-color: #1f9d7a;
+            --warning-color: #f4a261;
+            --danger-color: #d9534f;
+            --dark-color: #102a43;
+            --light-color: #f3f7f9;
+            --surface-color: #ffffff;
+            --border-color: #e3ebef;
+            --text-muted: #627d98;
+            --shadow-soft: 0 8px 22px rgba(16, 42, 67, 0.06);
+            --radius-md: 0.75rem;
+            --radius-lg: 0.95rem;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            letter-spacing: -0.01em;
+            color: var(--dark-color);
+        }
+
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        a {
+            color: var(--primary-color);
+        }
+
+        a:hover {
+            color: #163e56;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.95rem;
+            color: var(--primary-color) !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .navbar {
+            box-shadow: 0 8px 22px rgba(16, 42, 67, 0.07);
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(90deg, #ffffff 0%, #e9f5fa 100%) !important;
+            min-height: 80px;
+        }
+
+        .brand-logo {
+            width: 75px;
+            height: 70px;
+            border-radius: 100px;
+            object-fit: contain;
+            background-color: #fafafa;
+            padding: 1px;
+            border: 1px solid #cfe0e9;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+        }
+
+        .navbar .nav-link {
+            font-size: 1.00rem;
+            font-weight: 500;
+            color: #1f3e57;
+            border-radius: 0.55rem;
+            padding: 0.45rem 0.5rem !important;
+            transition: all 0.2s ease;
+        }
+
+        .navbar .nav-link:hover {
+            background: #edf6fb;
+            color: var(--primary-color);
+        }
+
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: var(--surface-color);
+            box-shadow: 2px 0 16px rgba(16, 42, 67, 0.06);
+            padding: 1.5rem 0;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .sidebar .nav-link {
+            color: var(--dark-color);
+            padding: 0.72rem 1.2rem;
+            margin: 0.25rem 0;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+            border-radius: 0.55rem;
+            margin-left: 0.5rem;
+            margin-right: 0.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: #edf5f8;
+            border-left-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 0;
+            width: 1.1rem;
+            text-align: center;
+        }
+
+        .card {
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 24px rgba(16, 42, 67, 0.05);
+            border-radius: 0.9rem;
+            margin-bottom: 1.5rem;
+            background: var(--surface-color);
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 14px 28px rgba(16, 42, 67, 0.08);
+        }
+
+        .card-header {
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            border-radius: 0.9rem 0.9rem 0 0 !important;
+        }
+
+        .stat-card {
+            border-left: 4px solid;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card.primary {
+            border-left-color: var(--primary-color);
+        }
+
+        .stat-card.success {
+            border-left-color: var(--success-color);
+        }
+
+        .stat-card.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .stat-card.danger {
+            border-left-color: var(--danger-color);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 0.6rem;
+            font-weight: 700;
+            padding: 0.5rem 0.95rem;
+        }
+
+        .btn-primary:hover {
+            background-color: #163e56;
+            border-color: #163e56;
+        }
+
+        .btn-outline-primary {
+            border-radius: 0.6rem;
+            font-weight: 700;
+        }
+
+        .btn {
+            border-radius: 0.6rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .badge-custom {
+            padding: 0.35rem 0.65rem;
+            border-radius: 0.25rem;
+        }
+
+        .table th {
+            background-color: #f1f6f8;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            color: #486581;
+            border-bottom-width: 1px;
+        }
+
+        .table td {
+            vertical-align: middle;
+            color: #334e68;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.15s ease;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f6fbfe;
+        }
+
+        .form-control,
+        .form-select {
+            border-color: #d6e3ea;
+            border-radius: 0.65rem;
+            padding: 0.58rem 0.78rem;
+            background-color: #fff;
+            color: #243b53;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #7ea9bf;
+            box-shadow: 0 0 0 0.2rem rgba(27, 73, 101, 0.14);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #334e68;
+            margin-bottom: 0.4rem;
+        }
+
+        .dropdown-menu {
+            border-radius: 0.7rem;
+            border: 1px solid #deeaef;
+            box-shadow: 0 14px 30px rgba(16, 42, 67, 0.08);
+            padding: 0.45rem;
+        }
+
+        .dropdown-item {
+            border-radius: 0.55rem;
+            font-weight: 600;
+            padding: 0.5rem 0.7rem;
+        }
+
+        .dropdown-item:hover {
+            background-color: #edf6fb;
+            color: var(--primary-color);
+        }
+
+        .progress {
+            height: 1.5rem;
+            border-radius: 0.5rem;
+            background-color: #ecf3f7;
+        }
+
+        .logo-text {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+        }
+
+        .main-content {
+            padding: 2rem;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        .alert {
+            border-radius: 0.7rem;
+            border: 1px solid rgba(16, 42, 67, 0.08);
+            box-shadow: 0 6px 16px rgba(16, 42, 67, 0.05);
+        }
+
+        .modal-content {
+            border: 1px solid var(--border-color);
+            border-radius: 0.9rem;
+            box-shadow: 0 18px 40px rgba(16, 42, 67, 0.14);
+        }
+
+        .list-group-item {
+            border-color: #e8eef2;
+        }
+
+        .empty-state {
+            padding: 2.6rem 1rem;
+            text-align: center;
+            color: #7b8794;
+        }
+
+        .empty-state i {
+            font-size: 2.4rem;
+            opacity: 0.35;
+            display: block;
+            margin-bottom: 0.55rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                min-height: auto;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+        }
+
+        /* ── Shared page components ─────────────────────────── */
+
+        /* Dark gradient banner used by all dashboards */
+        .page-hero {
+            background:
+                radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.18) 0 16%, transparent 17%),
+                radial-gradient(circle at 68% 78%, rgba(255, 255, 255, 0.10) 0 22%, transparent 23%),
+                linear-gradient(125deg, var(--dark-color) 0%, var(--primary-color) 48%, #1d7874 100%);
+            border-radius: 1rem;
+            color: #fff;
+        }
+
+        .page-hero h2,
+        .page-hero h3,
+        .page-hero h4 {
+            color: #ffffff;
+        }
+
+        .page-hero p {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        /* Pill chip used inside .page-hero */
+        .page-chip {
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.14);
+            color: #fff;
+            padding: 0.35rem 0.8rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* KPI metric card */
+        .metric-card {
+            border: 1px solid var(--border-color);
+            border-radius: 0.9rem;
+            box-shadow: var(--shadow-soft);
+            background: var(--surface-color);
+        }
+
+        .metric-label {
+            font-size: 0.72rem;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        /* Lightweight header strip for secondary/inner pages */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            padding-bottom: 1.1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .page-header h2,
+        .page-header h3 {
+            margin: 0;
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: -0.015em;
+            color: var(--dark-color);
+        }
+
+        /* Consistent card header */
+        .themed-card-header {
+            background: var(--surface-color) !important;
+            border-bottom: 1px solid var(--border-color) !important;
+            font-weight: 600;
+            padding: 0.9rem 1.25rem;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand logo-text" href="{% url 'home' %}">
+                <img src="{% static 'core/images/logo.png' %}" alt="Acadlink Logo" class="brand-logo">
+                <span>Acadlink</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'leaderboard' %}">
+                            <i class="bi bi-trophy"></i> Leaderboard
+                        </a>
+                    </li>
+                    {% if user.role == 'student' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'student_profile' %}">
+                            <i class="bi bi-person-circle"></i> Profile
+                        </a>
+                    </li>
+                    {% elif user.role == 'teacher' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'create_homework' %}">
+                            <i class="bi bi-plus-circle"></i> Create Homework
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'teacher_profile' %}">
+                            <i class="bi bi-person-circle"></i> Profile
+                        </a>
+                    </li>
+                    {% elif user.role == 'admin' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'manage_users' %}">
+                            <i class="bi bi-people"></i> Manage Users
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                            data-bs-toggle="dropdown">
+                            <i class="bi bi-person-fill"></i> {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-item-text"><small>Role: {{ user.get_role_display }}</small></span>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i>
+                                    Logout</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-primary text-white ms-2" href="{% url 'register' %}">
+                            <i class="bi bi-person-plus"></i> Register
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row">
+            {% if user.is_authenticated and request.resolver_match.url_name != 'home' %}
+            <!-- Sidebar -->
+            <div class="col-md-2 col-lg-2 sidebar d-none d-md-block">
+                <nav class="nav flex-column">
+                    {% if user.role == 'student' %}
+                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                        href="{% url 'dashboard' %}">
+                        <i class="bi bi-house-door"></i> Dashboard
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}"
+                        href="{% url 'leaderboard' %}">
+                        <i class="bi bi-trophy"></i> Leaderboard
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'student_profile' %}active{% endif %}"
+                        href="{% url 'student_profile' %}">
+                        <i class="bi bi-person"></i> My Profile
+                    </a>
+                    {% elif user.role == 'teacher' %}
+                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                        href="{% url 'dashboard' %}">
+                        <i class="bi bi-house-door"></i> Dashboard
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}"
+                        href="{% url 'leaderboard' %}">
+                        <i class="bi bi-trophy"></i> Leaderboard
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'create_homework' %}active{% endif %}"
+                        href="{% url 'create_homework' %}">
+                        <i class="bi bi-plus-circle"></i> Create Homework
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'review_submissions' %}active{% endif %}"
+                        href="{% url 'review_submissions' %}">
+                        <i class="bi bi-clipboard-check"></i> Review Submissions
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'teacher_profile' %}active{% endif %}"
+                        href="{% url 'teacher_profile' %}">
+                        <i class="bi bi-person"></i> My Profile
+                    </a>
+                    {% elif user.role == 'admin' %}
+                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                        href="{% url 'dashboard' %}">
+                        <i class="bi bi-house-door"></i> Dashboard
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}"
+                        href="{% url 'leaderboard' %}">
+                        <i class="bi bi-trophy"></i> Leaderboard
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'manage_users' %}active{% endif %}"
+                        href="{% url 'manage_users' %}">
+                        <i class="bi bi-people"></i> Users
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'manage_classes' %}active{% endif %}"
+                        href="{% url 'manage_classes' %}">
+                        <i class="bi bi-building"></i> Classes
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'manage_sections' %}active{% endif %}"
+                        href="{% url 'manage_sections' %}">
+                        <i class="bi bi-grid"></i> Sections
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'manage_subjects' %}active{% endif %}"
+                        href="{% url 'manage_subjects' %}">
+                        <i class="bi bi-book"></i> Subjects
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'manage_workload_settings' %}active{% endif %}"
+                        href="{% url 'manage_workload_settings' %}">
+                        <i class="bi bi-gear"></i> Workload Settings
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'analytics_dashboard' %}active{% endif %}"
+                        href="{% url 'analytics_dashboard' %}">
+                        <i class="bi bi-graph-up"></i> Analytics
+                    </a>
+                    {% elif user.role == 'parent' %}
+                    <a class="nav-link {% if request.resolver_match.url_name == 'parent_dashboard' %}active{% endif %}"
+                        href="{% url 'parent_dashboard' %}">
+                        <i class="bi bi-house-door"></i> Dashboard
+                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}"
+                        href="{% url 'leaderboard' %}">
+                        <i class="bi bi-trophy"></i> Leaderboard
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+            <div class="col-md-10 col-lg-10 main-content">
+                {% else %}
+                <div class="col-12 main-content">
+                    {% endif %}
+
+                    <!-- Messages -->
+                    {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Page Content -->
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Bootstrap 5 JS Bundle -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+        {% block extra_js %}{% endblock %}
+</body>
+
+</html>

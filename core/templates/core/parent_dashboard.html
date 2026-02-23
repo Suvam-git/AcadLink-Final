@@ -1,0 +1,341 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Parent Dashboard - Acadlink{% endblock %}
+
+{% block content %}
+
+
+<div class="page-hero text-white p-4 p-md-5 mb-4 shadow-sm">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+        <div>
+            <h2 class="mb-1 fw-bold">Parent Workspace</h2>
+            <p class="mb-0 opacity-75">Track your child's progress, workload, and wellbeing in one place.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <span class="page-chip"><i class="bi bi-people"></i> {{ approved_links|length }} Linked Children</span>
+            <span class="page-chip"><i class="bi bi-exclamation-triangle"></i> {{ total_children_mood_alerts }} Mood
+                Alerts</span>
+            <span class="page-chip"><i class="bi bi-hourglass-split"></i> {{ pending_links.count }} Pending Links</span>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{% url 'parent_messages' %}" class="btn btn-outline-primary position-relative">
+        <i class="bi bi-envelope"></i> Messages
+        {% if unread_messages_count > 0 %}
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            {{ unread_messages_count }}
+        </span>
+        {% endif %}
+    </a>
+    <a href="{% url 'request_parent_link' %}" class="btn btn-primary">
+        <i class="bi bi-link-45deg"></i> Link Child
+    </a>
+</div>
+
+{% if approved_links|length > 1 %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-8">
+                <label for="studentOverviewSelect" class="form-label fw-semibold mb-1">Choose Student Overview</label>
+                <select id="studentOverviewSelect" name="student" class="form-select">
+                    {% for link in approved_links %}
+                    <option value="{{ link.student.id }}" {% if link.student.id == selected_student_id %}selected{% endif %}>
+                        {{ link.student.get_full_name|default:link.student.username }}{% if link.is_primary %}
+                        (Primary){% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-eye"></i> View Overview
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<!-- Pending Link Requests -->
+{% if pending_links %}
+<div class="alert alert-warning border-0 shadow-sm mb-4">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-hourglass-split fs-3 me-3"></i>
+        <div>
+            <h6 class="fw-bold mb-1">Pending Link Requests ({{ pending_links.count }})</h6>
+            <p class="mb-0 small">Your requests to link with students are awaiting administrator approval.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if total_children_mood_alerts > 0 %}
+<div class="alert alert-warning border-0 shadow-sm mb-4">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+        <div>
+            <h6 class="fw-bold mb-1">Student Mood Alerts</h6>
+            <p class="mb-0 small">{{ total_children_mood_alerts }} child{{ total_children_mood_alerts|pluralize }} show
+                a concerning mood trend in the last 7 days.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Children Overview -->
+{% if children_data %}
+<div class="row g-4 mb-4">
+    {% for child_data in children_data %}
+    <div class="col-12">
+        <div class="card metric-card">
+            <!-- Student Header -->
+            <div class="card-header page-hero border-0">
+                <div class="d-flex justify-content-between align-items-center text-white">
+                    <div>
+                        <h4 class="mb-1 fw-bold">
+                            <i class="bi bi-person-circle"></i>
+                            {{ child_data.student.get_full_name|default:child_data.student.username }}
+                            {% if child_data.link.is_primary %}
+                            <span class="badge bg-light text-dark ms-2">Primary</span>
+                            {% endif %}
+                        </h4>
+                        <p class="mb-0 small opacity-75">
+                            <i class="bi bi-building me-1"></i>
+                            {% if child_data.student.class_assigned %}
+                            {{ child_data.student.class_assigned.name }} - Section {{ child_data.student.section_assigned.name }}
+                            {% else %}
+                            Not assigned to any class
+                            {% endif %}
+                            <span class="mx-2">|</span>
+                            <i class="bi bi-person-badge me-1"></i>{{ child_data.link.relationship }}
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <div class="badge bg-light text-dark fs-5 px-3 py-2">
+                            <i class="bi bi-trophy"></i> {{ child_data.completion_rate }}%
+                        </div>
+                        <small class="d-block text-white-50 mt-1">Completion Rate</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                {% if child_data.has_mood_alert %}
+                <div class="alert alert-warning border-0 mb-3">
+                    <strong><i class="bi bi-exclamation-circle-fill"></i> Mood Alert:</strong>
+                    {{ child_data.bad_mood_count }} recent low-mood entries detected this week.
+                </div>
+                {% endif %}
+
+                <!-- Quick Stats -->
+                <div class="row g-3 mb-4">
+                    <!-- Free Time Card -->
+                    <div class="col-md-3">
+                        <div class="card metric-card h-100 {% if child_data.remaining_free_time == 0 %}bg-danger bg-opacity-10 border-danger{% elif child_data.remaining_free_time and child_data.remaining_free_time < 30 %}bg-warning bg-opacity-10 border-warning{% else %}bg-success bg-opacity-10 border-success{% endif %}"
+                            style="border-left: 4px solid !important;">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i
+                                        class="bi bi-clock-history fs-4 me-2 {% if child_data.remaining_free_time == 0 %}text-danger{% elif child_data.remaining_free_time and child_data.remaining_free_time < 30 %}text-warning{% else %}text-success{% endif %}"></i>
+                                    <h6 class="mb-0 fw-bold">Free Time</h6>
+                                </div>
+                                {% if child_data.free_time %}
+                                <h3
+                                    class="mb-0 fw-bold {% if child_data.remaining_free_time == 0 %}text-danger{% elif child_data.remaining_free_time < 30 %}text-warning{% else %}text-success{% endif %}">
+                                    {{ child_data.remaining_free_time }} min
+                                </h3>
+                                <small class="text-muted">remaining today</small>
+                                {% else %}
+                                <p class="mb-0 text-muted small">Not set</p>
+                                {% endif %}
+                                <a href="{% url 'set_student_free_time' child_data.student.id %}"
+                                    class="btn btn-outline-primary mt-2 w-100">
+                                    <i class="bi bi-pencil"></i> Manage
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Homework Progress -->
+                    <div class="col-md-3">
+                        <div class="card metric-card bg-primary bg-opacity-10 h-100"
+                            style="border-left: 4px solid #0d6efd !important;">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-list-check fs-4 me-2 text-primary"></i>
+                                    <h6 class="mb-0 fw-bold">Homework</h6>
+                                </div>
+                                <h3 class="mb-0 fw-bold text-primary">{{ child_data.completed_hw }}/{{ child_data.total_hw }}</h3>
+                                <small class="text-muted">submitted so far</small>
+                                <div class="progress mt-2" style="height: 6px;">
+                                    <div class="progress-bar bg-primary"
+                                        style="width: {{ child_data.completion_rate }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pending Homework -->
+                    <div class="col-md-3">
+                        <div class="card metric-card bg-warning bg-opacity-10 h-100"
+                            style="border-left: 4px solid #ffc107 !important;">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-exclamation-circle fs-4 me-2 text-warning"></i>
+                                    <h6 class="mb-0 fw-bold">Pending</h6>
+                                </div>
+                                <h3 class="mb-0 fw-bold text-warning">{{ child_data.pending_hw }}</h3>
+                                <small class="text-muted">open assignments</small>
+                                <div class="mt-2">
+                                    <small class="text-muted">{{ child_data.overdue_record_count }} passed deadlines</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Completion Rate -->
+                    <div class="col-md-3">
+                        <div class="card metric-card bg-info bg-opacity-10 h-100"
+                            style="border-left: 4px solid #0dcaf0 !important;">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-graph-up fs-4 me-2 text-info"></i>
+                                    <h6 class="mb-0 fw-bold">Success Rate</h6>
+                                </div>
+                                <h3 class="mb-0 fw-bold text-info">{{ child_data.completion_rate }}%</h3>
+                                <small class="text-muted">completion</small>
+                                <div class="progress mt-2" style="height: 6px;">
+                                    <div class="progress-bar bg-info" style="width: {{ child_data.completion_rate }}%">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mood Tracking -->
+                <div class="card border mb-3">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-emoji-smile text-warning"></i> Recent Mood (Last 7 Days)
+                        </h6>
+                        {% if child_data.recent_moods %}
+                        <div class="d-flex justify-content-around align-items-end" style="height: 80px;">
+                            {% for mood in child_data.recent_moods %}
+                            <div class="text-center">
+                                <div class="mb-2" style="font-size: 2rem;">
+                                    {% if mood.mood == 'great' %}😊
+                                    {% elif mood.mood == 'good' %}🙂
+                                    {% elif mood.mood == 'okay' %}😐
+                                    {% elif mood.mood == 'bad' %}😔
+                                    {% else %}😢
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted d-block">{{ mood.date|date:"D" }}</small>
+                                <small class="text-muted">{{ mood.date|date:"M d" }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted text-center mb-0">No mood entries recorded yet</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if child_data.parent_suggestions %}
+                <div class="card border mb-3">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-lightbulb text-primary"></i> Parent Suggestions
+                        </h6>
+                        {% for item in child_data.parent_suggestions %}
+                        <div class="alert alert-{{ item.type }} border-0 mb-2 py-2">
+                            <strong class="d-block mb-1">{{ item.title }}</strong>
+                            <span class="fw-medium">{{ item.message }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Action Buttons -->
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <a href="{% url 'view_student_details' child_data.student.id %}" class="btn btn-primary w-100">
+                            <i class="bi bi-eye"></i> View Full Details
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{% url 'select_teacher_to_message' child_data.student.id %}"
+                            class="btn btn-success w-100">
+                            <i class="bi bi-envelope"></i> Message Teacher
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{% url 'set_student_free_time' child_data.student.id %}"
+                            class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-clock"></i> Set Free Time
+                        </a>
+                    </div>
+                    {% if not child_data.link.is_primary %}
+                    <div class="col-md-4">
+                        <form method="post" action="{% url 'set_primary_child' child_data.link.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-star"></i> Set as Primary
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<!-- No Children Linked -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-people display-1 text-primary opacity-25"></i>
+        <h4 class="mt-4 mb-2 fw-bold">No Children Linked</h4>
+        <p class="text-muted mb-4">Start by linking your children's accounts to monitor their academic journey.</p>
+        <a href="{% url 'request_parent_link' %}" class="btn btn-primary btn-lg px-5">
+            <i class="bi bi-link-45deg"></i> Link Your First Child
+        </a>
+
+        <div class="mt-5">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card bg-light border-0">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3">What You Can Do:</h6>
+                            <div class="row text-start">
+                                <div class="col-md-6">
+                                    <ul class="small mb-0">
+                                        <li class="mb-2">Monitor homework completion</li>
+                                        <li class="mb-2">Track mood patterns</li>
+                                        <li>View academic scores</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="small mb-0">
+                                        <li class="mb-2">Set daily free time</li>
+                                        <li class="mb-2">Message teachers</li>
+                                        <li>Get progress reports</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

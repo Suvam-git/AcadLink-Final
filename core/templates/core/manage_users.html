@@ -1,0 +1,182 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Manage Users - Acadlink{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h2><i class="bi bi-people me-2 text-primary"></i>Manage Users</h2>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Role</label>
+                <select name="role" class="form-select">
+                    <option value="all" {% if role_filter == 'all' %}selected{% endif %}>All Roles</option>
+                    <option value="teacher" {% if role_filter == 'teacher' %}selected{% endif %}>Teachers</option>
+                    <option value="student" {% if role_filter == 'student' %}selected{% endif %}>Students</option>
+                    <option value="parent" {% if role_filter == 'parent' %}selected{% endif %}>Parents</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Status</label>
+                <select name="status" class="form-select">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending Approval
+                    </option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-filter"></i> Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card">
+    <div class="card-header themed-card-header">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-people"></i> Users
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {% if users %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name / Username</th>
+                        <th>Role</th>
+                        <th>Assignment Status</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <strong>{{ user.get_full_name|default:user.username }}</strong><br>
+                            <small class="text-muted">{{ user.username }}</small>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if user.role == 'teacher' %}bg-primary
+                                {% elif user.role == 'student' %}bg-info
+                                {% elif user.role == 'parent' %}bg-success
+                                {% else %}bg-secondary{% endif %}">
+                                {{ user.get_role_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if user.role == 'student' %}
+                            {% if user.class_assigned and user.section_assigned %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Assigned
+                            </span><br>
+                            <small class="text-muted">{{ user.class_assigned.name }} - {{ user.section_assigned.name }}</small>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-exclamation-circle"></i> Not Assigned
+                            </span>
+                            {% endif %}
+                            {% elif user.role == 'teacher' %}
+                            {% with assignments=user.class_assignments.all %}
+                            {% if assignments %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> {{ assignments.count }} Class{{ assignments.count|pluralize:"es" }}
+                            </span><br>
+                            <small class="text-muted">
+                                {% for assignment in assignments|slice:":2" %}
+                                {{ assignment.class_name.name }}-{{ assignment.section.name }}{% if assignment.is_primary %} (Primary){% endif %}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                                {% if assignments.count > 2 %}...{% endif %}
+                            </small>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-exclamation-circle"></i> Not Assigned
+                            </span>
+                            {% endif %}
+                            {% endwith %}
+                            {% elif user.role == 'parent' %}
+                            {% if user.approved_children_count %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> {{ user.approved_children_count }} Child{{ user.approved_children_count|pluralize:"ren" }}
+                            </span><br>
+                            <small class="text-muted">
+                                {% for link in user.approved_children_preview|slice:":2" %}
+                                {{ link.student.get_full_name|default:link.student.username }}{% if not forloop.last %},
+                                {% endif %}
+                                {% endfor %}
+                                {% if user.approved_children_count > 2 %}...{% endif %}
+                            </small>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-exclamation-circle"></i> No Links
+                            </span>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_approved %}
+                            <span class="badge bg-success">Approved</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                            {% endif %}
+                            {% if user.is_verified %}
+                            <span class="badge bg-info">Verified</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                {% if not user.is_approved %}
+                                <a href="{% url 'approve_user' user.id %}" class="btn btn-success" title="Approve">
+                                    <i class="bi bi-check-circle"></i>
+                                </a>
+                                {% endif %}
+
+                                {% if user.role != 'parent' %}
+                                <a href="{% url 'admin_assign_class' user.id %}" class="btn btn-primary"
+                                    title="Assign Class">
+                                    <i class="bi bi-building"></i>
+                                </a>
+                                {% endif %}
+
+                                <a href="{% url 'admin_change_password' user.id %}" class="btn btn-warning"
+                                    title="Change Password">
+                                    <i class="bi bi-key"></i>
+                                </a>
+
+                                <a href="{% url 'delete_user' user.id %}" class="btn btn-danger" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox display-4"></i>
+            <p class="mt-3 mb-0">No users found with the selected filters.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Link Child - Acadlink{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white border-0">
+                    <h4 class="mb-0 fw-bold">
+                        <i class="bi bi-link-45deg"></i> Link with Your Child
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <div class="alert alert-info border-0 mb-4">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Note:</strong> Your link request will be reviewed by an administrator before approval.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="student_username" class="form-label fw-bold">Student Username</label>
+                            <input type="text" 
+                                   name="student_username" 
+                                   id="student_username" 
+                                   class="form-control" 
+                                   placeholder="Enter student's username"
+                                   required>
+                            <small class="form-text text-muted">
+                                Ask your child for their exact username.
+                            </small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="relationship" class="form-label fw-bold">Your Relationship</label>
+                            <select name="relationship" id="relationship" class="form-select" required>
+                                <option value="">Select relationship</option>
+                                <option value="Father">Father</option>
+                                <option value="Mother">Mother</option>
+                                <option value="Guardian">Guardian</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="bi bi-send"></i> Send Request
+                            </button>
+                            <a href="{% url 'parent_dashboard' %}" class="btn btn-outline-secondary flex-grow-1">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+{% endblock %}

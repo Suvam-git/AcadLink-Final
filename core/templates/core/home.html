@@ -1,0 +1,889 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Acadlink — Smart Workload Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Layout ──────────────────────────────────────────── */
+    .home-wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 1.25rem;
+    }
+
+    /* ── Hero ─────────────────────────────────────────────── */
+    .hero {
+        padding: 4rem 0 3.5rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: center;
+    }
+
+    @media (max-width: 860px) {
+        .hero {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .hero-panel {
+            display: none;
+        }
+    }
+
+    .hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--primary-color);
+        background: #e6f1f7;
+        border: 1px solid #cde3ef;
+        border-radius: 2rem;
+        padding: 0.3rem 0.8rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .hero-eyebrow i {
+        font-size: 0.78rem;
+    }
+
+    .hero-title {
+        font-size: clamp(2rem, 3.6vw, 2.9rem);
+        font-weight: 800;
+        line-height: 1.12;
+        letter-spacing: -0.02em;
+        color: var(--dark-color);
+        margin-bottom: 1rem;
+    }
+
+    .hero-title span {
+        background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-sub {
+        font-size: 1rem;
+        color: var(--text-muted);
+        line-height: 1.65;
+        max-width: 46ch;
+        margin-bottom: 1.8rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+    }
+
+    .btn-hero-primary {
+        background: var(--primary-color);
+        color: #fff;
+        border: none;
+        padding: 0.7rem 1.4rem;
+        border-radius: 0.6rem;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+        box-shadow: 0 4px 14px rgba(27, 73, 101, 0.25);
+    }
+
+    .btn-hero-primary:hover {
+        background: #163e56;
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(27, 73, 101, 0.32);
+    }
+
+    .btn-hero-ghost {
+        background: transparent;
+        color: var(--primary-color);
+        border: 1.5px solid #c5dce8;
+        padding: 0.7rem 1.4rem;
+        border-radius: 0.6rem;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn-hero-ghost:hover {
+        background: #edf4f9;
+        border-color: #9abecf;
+        color: var(--primary-color);
+        transform: translateY(-1px);
+    }
+
+    /* Hero panel */
+    .hero-panel {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 1.1rem;
+        box-shadow: 0 12px 36px rgba(16, 42, 67, 0.07);
+        overflow: hidden;
+    }
+
+    .hero-panel-head {
+        padding: 1rem 1.2rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .hero-panel-head span {
+        font-weight: 700;
+        font-size: 0.88rem;
+        color: var(--dark-color);
+    }
+
+    .hero-panel-head i {
+        color: var(--primary-color);
+        font-size: 1rem;
+    }
+
+    .panel-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.85rem 1.2rem;
+        border-bottom: 1px solid #f2f7fa;
+        transition: background 0.15s;
+    }
+
+    .panel-row:last-child {
+        border-bottom: none;
+    }
+
+    .panel-row:hover {
+        background: #f8fbfd;
+    }
+
+    .panel-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .panel-badge {
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 0.22rem 0.65rem;
+        border-radius: 2rem;
+        background: #e9f3f9;
+        color: var(--primary-color);
+    }
+
+    /* ── Divider ──────────────────────────────────────────── */
+    .home-divider {
+        height: 1px;
+        background: var(--border-color);
+        margin: 0;
+    }
+
+    /* ── Sections ─────────────────────────────────────────── */
+    .home-section {
+        padding: 3.5rem 0;
+    }
+
+    .section-label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--secondary-color);
+        margin-bottom: 0.45rem;
+    }
+
+    .section-title {
+        font-size: clamp(1.45rem, 2.5vw, 1.9rem);
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        color: var(--dark-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .section-sub {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        max-width: 50ch;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+
+    /* ── Feature cards ────────────────────────────────────── */
+    .feat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+
+    @media (max-width: 992px) {
+        .feat-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 540px) {
+        .feat-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .feat-card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 1rem;
+        padding: 1.35rem 1.1rem;
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .feat-card:hover {
+        box-shadow: 0 12px 28px rgba(16, 42, 67, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .feat-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 0.65rem;
+        background: #e9f3f9;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        margin-bottom: 0.9rem;
+    }
+
+    .feat-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin-bottom: 0.35rem;
+    }
+
+    .feat-desc {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        line-height: 1.55;
+        margin: 0;
+    }
+
+    /* ── Stats ────────────────────────────────────────────── */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .stat-tile {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 0.95rem;
+        padding: 1.3rem 1.1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-tile::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 3px;
+        height: 100%;
+        border-radius: 3px 0 0 3px;
+    }
+
+    .stat-tile.c1::before {
+        background: var(--primary-color);
+    }
+
+    .stat-tile.c2::before {
+        background: var(--success-color);
+    }
+
+    .stat-tile.c3::before {
+        background: var(--warning-color);
+    }
+
+    .stat-tile.c4::before {
+        background: var(--secondary-color);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-tile.c1 .stat-value {
+        color: var(--primary-color);
+    }
+
+    .stat-tile.c2 .stat-value {
+        color: var(--success-color);
+    }
+
+    .stat-tile.c3 .stat-value {
+        color: var(--warning-color);
+    }
+
+    .stat-tile.c4 .stat-value {
+        color: var(--secondary-color);
+    }
+
+    .stat-name {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        letter-spacing: 0.01em;
+    }
+
+    /* ── Flows ────────────────────────────────────────────── */
+    .flows-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    @media (max-width: 860px) {
+        .flows-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .flow-card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+
+    .flow-header {
+        padding: 0.8rem 1.1rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #f8fbfd;
+    }
+
+    .flow-header span {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--dark-color);
+    }
+
+    .flow-header i {
+        color: var(--primary-color);
+    }
+
+    .flow-steps {
+        padding: 0.2rem 0;
+    }
+
+    .flow-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.75rem 1.1rem;
+        border-bottom: 1px solid #f2f7fa;
+        transition: background 0.15s;
+    }
+
+    .flow-step:last-child {
+        border-bottom: none;
+    }
+
+    .flow-step:hover {
+        background: #f8fbfd;
+    }
+
+    .step-num {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #e9f3f9;
+        color: var(--primary-color);
+        font-size: 0.7rem;
+        font-weight: 800;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1px;
+    }
+
+    .step-text {
+        font-size: 0.84rem;
+        color: #334e68;
+        line-height: 1.5;
+    }
+
+    /* ── CTA ──────────────────────────────────────────────── */
+    .home-cta {
+        background: linear-gradient(135deg, #1b4965 0%, #2a6f97 100%);
+        border-radius: 1.1rem;
+        padding: 3rem 2rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .home-cta::before {
+        content: '';
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 50%;
+    }
+
+    .home-cta::after {
+        content: '';
+        position: absolute;
+        bottom: -50px;
+        left: -30px;
+        width: 160px;
+        height: 160px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 50%;
+    }
+
+    .cta-title {
+        font-size: clamp(1.3rem, 2.5vw, 1.75rem);
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 0.6rem;
+        letter-spacing: -0.01em;
+        position: relative;
+        z-index: 1;
+    }
+
+    .cta-sub {
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 0.92rem;
+        margin-bottom: 1.6rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-cta {
+        background: #fff;
+        color: var(--primary-color);
+        border: none;
+        padding: 0.7rem 1.5rem;
+        border-radius: 0.6rem;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s ease;
+        position: relative;
+        z-index: 1;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    }
+
+    .btn-cta:hover {
+        background: #edf6fb;
+        color: var(--primary-color);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+    }
+
+    /* ── Footer ───────────────────────────────────────────── */
+    .home-footer {
+        border-top: 1px solid var(--border-color);
+        margin-top: 1rem;
+        padding-top: 2.8rem;
+    }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 2.5rem;
+        padding-bottom: 2.2rem;
+    }
+
+    @media (max-width: 700px) {
+        .footer-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .footer-brand {
+            grid-column: 1 / -1;
+        }
+    }
+
+    .footer-brand-name {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--dark-color);
+        letter-spacing: -0.01em;
+        margin-bottom: 0.4rem;
+    }
+
+    .footer-tagline {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        line-height: 1.55;
+        max-width: 28ch;
+    }
+
+    .footer-col-title {
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--dark-color);
+        margin-bottom: 0.9rem;
+    }
+
+    .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+    }
+
+    .footer-links a {
+        font-size: 0.83rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.15s;
+    }
+
+    .footer-links a:hover {
+        color: var(--primary-color);
+    }
+
+    .footer-bottom {
+        border-top: 1px solid var(--border-color);
+        padding: 1.1rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .footer-copy {
+        font-size: 0.76rem;
+        color: var(--text-muted);
+    }
+
+    .footer-legal {
+        display: flex;
+        gap: 1.2rem;
+    }
+
+    .footer-legal a {
+        font-size: 0.76rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.15s;
+    }
+
+    .footer-legal a:hover {
+        color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="home-wrap">
+
+    <!-- ── HERO ─────────────────────────────────────────── -->
+    <div class="hero">
+        <div>
+            <div class="hero-eyebrow">
+                <i class="bi bi-mortarboard-fill"></i>
+                Academic Workflow Platform
+            </div>
+            <h1 class="hero-title">
+                The smarter way to<br>
+                <span>manage school workload.</span>
+            </h1>
+            <p class="hero-sub">
+                Acadlink connects teachers, students, and parents in one clear system — balancing assignments, tracking
+                progress, and supporting student wellbeing.
+            </p>
+            <div class="hero-actions">
+                {% if not user.is_authenticated %}
+                <a href="{% url 'register' %}" class="btn-hero-primary">
+                    <i class="bi bi-person-plus-fill"></i> Create Account
+                </a>
+                <a href="{% url 'login' %}" class="btn-hero-ghost">
+                    <i class="bi bi-box-arrow-in-right"></i> Sign In
+                </a>
+                {% else %}
+                <a href="{% url 'dashboard' %}" class="btn-hero-primary">
+                    <i class="bi bi-speedometer2"></i> Open Dashboard
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="hero-panel">
+            <div class="hero-panel-head">
+                <i class="bi bi-check2-circle"></i>
+                <span>What teams use daily</span>
+            </div>
+            <div class="panel-row">
+                <span class="panel-label">Homework planning</span>
+                <span class="panel-badge">Teacher-first flow</span>
+            </div>
+            <div class="panel-row">
+                <span class="panel-label">Student progress</span>
+                <span class="panel-badge">Live tracking</span>
+            </div>
+            <div class="panel-row">
+                <span class="panel-label">Mood check-ins</span>
+                <span class="panel-badge">Daily wellness signal</span>
+            </div>
+            <div class="panel-row">
+                <span class="panel-label">Parent collaboration</span>
+                <span class="panel-badge">Clear communication</span>
+            </div>
+            <div class="panel-row">
+                <span class="panel-label">Analytics & reports</span>
+                <span class="panel-badge">Admin insights</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="home-divider"></div>
+
+    <!-- ── FEATURES ──────────────────────────────────────── -->
+    <section class="home-section">
+        <div class="section-label">Capabilities</div>
+        <h2 class="section-title">Everything your school needs</h2>
+        <p class="section-sub">Built to reduce noise and improve clarity for every role in the academic process.</p>
+        <div class="feat-grid">
+            <div class="feat-card">
+                <div class="feat-icon"><i class="bi bi-calendar2-check"></i></div>
+                <div class="feat-title">Balanced Assignments</div>
+                <p class="feat-desc">Track deadlines and estimated effort to avoid overloading students across classes.
+                </p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon"><i class="bi bi-journal-check"></i></div>
+                <div class="feat-title">Submission Workflow</div>
+                <p class="feat-desc">Students submit online; teachers approve, request resubmission, or give feedback
+                    instantly.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon"><i class="bi bi-heart-pulse"></i></div>
+                <div class="feat-title">Mood Monitoring</div>
+                <p class="feat-desc">Daily check-ins surface wellbeing trends so schools can act before issues escalate.
+                </p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon"><i class="bi bi-bar-chart-line"></i></div>
+                <div class="feat-title">Actionable Analytics</div>
+                <p class="feat-desc">Admins and teachers get a clear view of completion trends and class-level
+                    performance.</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="home-divider"></div>
+
+    <!-- ── STATS ──────────────────────────────────────────── -->
+    <section class="home-section">
+        <div class="section-label">Platform snapshot</div>
+        <h2 class="section-title">Live platform data</h2>
+        <p class="section-sub">A real-time look at what's happening across the platform right now.</p>
+        <div class="stats-row">
+            <div class="stat-tile c1">
+                <div class="stat-value">{{ total_students }}</div>
+                <div class="stat-name">Active Students</div>
+            </div>
+            <div class="stat-tile c2">
+                <div class="stat-value">{{ total_teachers }}</div>
+                <div class="stat-name">Active Teachers</div>
+            </div>
+            <div class="stat-tile c3">
+                <div class="stat-value">{{ total_homework }}</div>
+                <div class="stat-name">Active Homework</div>
+            </div>
+            <div class="stat-tile c4">
+                <div class="stat-value">{{ total_classes }}</div>
+                <div class="stat-name">Classes</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="home-divider"></div>
+
+    <!-- ── HOW IT WORKS ───────────────────────────────────── -->
+    <section class="home-section">
+        <div class="section-label">How it works</div>
+        <h2 class="section-title">A clear flow for every role</h2>
+        <p class="section-sub">Acadlink adapts to how each participant in the school ecosystem actually operates
+            day-to-day.</p>
+        <div class="flows-grid">
+            <div class="flow-card">
+                <div class="flow-header">
+                    <i class="bi bi-person-circle"></i>
+                    <span>Student flow</span>
+                </div>
+                <div class="flow-steps">
+                    <div class="flow-step">
+                        <span class="step-num">1</span>
+                        <span class="step-text">Sign in and review current assignments.</span>
+                    </div>
+                    <div class="flow-step">
+                        <span class="step-num">2</span>
+                        <span class="step-text">Log a daily mood check-in.</span>
+                    </div>
+                    <div class="flow-step">
+                        <span class="step-num">3</span>
+                        <span class="step-text">Submit or resubmit homework with files or text.</span>
+                    </div>
+                    <div class="flow-step">
+                        <span class="step-num">4</span>
+                        <span class="step-text">Track approval status and teacher feedback.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flow-card">
+                <div class="flow-header">
+                    <i class="bi bi-person-badge"></i>
+                    <span>Teacher flow</span>
+                </div>
+                <div class="flow-steps">
+                    <div class="flow-step">
+                        <span class="step-num">1</span>
+                        <span class="step-text">Create assignments with clear deadlines.</span>
+                    </div>
+                    <div class="flow-step">
+                        <span class="step-num">2</span>
+                        <span class="step-text">Review pending submissions quickly.</span>
+                    </div>
+                    <div class="flow-step">
+                        <span class="step-num">3</span>
+                        <span class="step-text">Approve, give feedback, or request resubmission.</span>
+                    </div>
+                    <div class="flow-step">
+                        <span class="step-num">4</span>
+                        <span class="step-text">Monitor class workload and completion rates.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flow-card">
+                <div class="flow-header">
+                    <i class="bi bi-people"></i>
+                    <span>Parent flow</span>
+                </div>
+                <div class="flow-steps">
+                    <div class="flow-step">
+                        <span class="step-num">1</span>
+                        <span class="step-text">Link with your child's account after admin approval.</span>
+                    </div>
+                    <div class="flow-step">
+                        <span class="step-num">2</span>
+                        <span class="step-text">Set daily free-time availability.</span>
+                    </div>
+                    <div class="flow-step">
+                        <span class="step-num">3</span>
+                        <span class="step-text">Track homework load and mood trends.</span>
+                    </div>
+                    <div class="flow-step">
+                        <span class="step-num">4</span>
+                        <span class="step-text">Message teachers directly when support is needed.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── CTA ───────────────────────────────────────────── -->
+    <div class="home-cta">
+        <div class="cta-title">Start building a more organized school routine.</div>
+        <p class="cta-sub">A practical platform for workload balance, academic consistency, and student support.</p>
+        {% if not user.is_authenticated %}
+        <a href="{% url 'register' %}" class="btn-cta">
+            <i class="bi bi-arrow-right-circle-fill"></i> Get started with Acadlink
+        </a>
+        {% else %}
+        <a href="{% url 'dashboard' %}" class="btn-cta">
+            <i class="bi bi-speedometer2"></i> Go to Dashboard
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- ── FOOTER ─────────────────────────────────────────── -->
+    <footer class="home-footer">
+        <div class="footer-grid">
+            <!-- Brand -->
+            <div class="footer-brand">
+                <div class="footer-brand-name">Acadlink</div>
+                <p class="footer-tagline">Smart workload management for students, teachers, and parents — in one clear
+                    platform.</p>
+            </div>
+            <!-- Platform links -->
+            <div>
+                <div class="footer-col-title">Platform</div>
+                <ul class="footer-links">
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li><a href="{% url 'leaderboard' %}">Leaderboard</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <!-- Account links -->
+            <div>
+                <div class="footer-col-title">Account</div>
+                <ul class="footer-links">
+                    {% if not user.is_authenticated %}
+                    <li><a href="{% url 'login' %}">Sign In</a></li>
+                    <li><a href="{% url 'register' %}">Create Account</a></li>
+                    {% else %}
+                    <li><a href="{% url 'logout' %}">Sign Out</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span class="footer-copy">© 2026 Acadlink. All rights reserved.</span>
+            <div class="footer-legal">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Use</a>
+            </div>
+        </div>
+    </footer>
+
+</div>
+{% endblock %}

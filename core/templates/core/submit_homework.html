@@ -1,0 +1,158 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Submit Homework - Acadlink{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 fw-bold">
+        {% if is_resubmission %}Resubmit Homework{% else %}Submit Homework{% endif %}
+    </h2>
+    <a href="{% url 'student_homework' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Homework
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-bottom">
+        <h5 class="mb-0 fw-bold">{{ homework.title }}</h5>
+    </div>
+    <div class="card-body">
+        <p class="mb-2"><strong>Subject:</strong> {{ homework.subject.name }}</p>
+        <p class="mb-2"><strong>Deadline:</strong> {{ homework.deadline|date:"M d, Y h:i A" }}</p>
+        <p class="mb-0 text-muted">{{ homework.description|linebreaks }}</p>
+    </div>
+</div>
+
+{% if submission and submission.teacher_feedback and is_resubmission %}
+<div class="alert alert-warning border-0 shadow-sm">
+    <h6 class="fw-bold mb-2"><i class="bi bi-chat-left-text"></i> Teacher Feedback</h6>
+    <p class="mb-0">{{ submission.teacher_feedback|linebreaks }}</p>
+</div>
+{% endif %}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header {% if is_resubmission %}bg-warning{% else %}bg-primary{% endif %} text-white border-0">
+        <h5 class="mb-0 fw-bold">
+            {% if is_resubmission %}Update and Resubmit{% else %}Your Submission{% endif %}
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label fw-bold">Submission Method</label>
+                <select id="submission_mode" name="submission_mode" class="form-select">
+                    <option value="online" {% if selected_submission_mode == 'online' %}selected{% endif %}>Online (Text/File)</option>
+                    <option value="physical" {% if selected_submission_mode == 'physical' %}selected{% endif %}>In Person / Physical Copy</option>
+                </select>
+                <small class="text-muted">If you submit a physical copy in class, select physical and submit this form.</small>
+            </div>
+
+            <div id="online_text_block" class="mb-3">
+                <label for="submission_text" class="form-label fw-bold">Text Submission (Optional)</label>
+                <textarea
+                    id="submission_text"
+                    name="submission_text"
+                    rows="8"
+                    class="form-control"
+                    placeholder="Write your answer here...">{% if submission %}{{ submission.submission_text }}{% endif %}</textarea>
+                <small class="text-muted">You can submit text, a file, or both.</small>
+            </div>
+
+            <div id="online_file_block" class="mb-3">
+                <label for="submission_file" class="form-label fw-bold">Upload File (Optional)</label>
+                <input id="submission_file" name="submission_file" type="file" class="form-control">
+                {% if submission and submission.submission_file %}
+                <small class="d-block mt-2">
+                    Current file:
+                    <a href="{{ submission.submission_file.url }}" target="_blank" rel="noopener">
+                        {{ submission.submission_file.name }}
+                    </a>
+                </small>
+                {% endif %}
+            </div>
+
+            {% if quiz_questions %}
+            <div class="card border-0 bg-light mb-3">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-patch-question"></i> Assignment Quiz</h6>
+                    <small class="text-muted d-block mb-3">Answer correctly to earn extra points.</small>
+                    {% for q in quiz_questions %}
+                    <div class="mb-3 p-3 bg-white rounded border">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <strong>Q{{ forloop.counter }}. {{ q.question_text }}</strong>
+                            <span class="badge bg-success">{{ q.points }} pts</span>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-check-label w-100 border rounded p-2">
+                                    <input class="form-check-input me-2" type="radio" name="quiz_answer_{{ q.id }}" value="A"
+                                        {% if q.selected_option == 'A' %}checked{% endif %}>
+                                    A. {{ q.option_a }}
+                                </label>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-check-label w-100 border rounded p-2">
+                                    <input class="form-check-input me-2" type="radio" name="quiz_answer_{{ q.id }}" value="B"
+                                        {% if q.selected_option == 'B' %}checked{% endif %}>
+                                    B. {{ q.option_b }}
+                                </label>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-check-label w-100 border rounded p-2">
+                                    <input class="form-check-input me-2" type="radio" name="quiz_answer_{{ q.id }}" value="C"
+                                        {% if q.selected_option == 'C' %}checked{% endif %}>
+                                    C. {{ q.option_c }}
+                                </label>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-check-label w-100 border rounded p-2">
+                                    <input class="form-check-input me-2" type="radio" name="quiz_answer_{{ q.id }}" value="D"
+                                        {% if q.selected_option == 'D' %}checked{% endif %}>
+                                    D. {{ q.option_d }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn {% if is_resubmission %}btn-warning{% else %}btn-primary{% endif %}">
+                    {% if is_resubmission %}
+                        <i class="bi bi-arrow-clockwise"></i> Resubmit Homework
+                    {% else %}
+                        <i class="bi bi-upload"></i> Submit Homework
+                    {% endif %}
+                </button>
+                <a href="{% url 'student_homework' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var modeSelect = document.getElementById('submission_mode');
+    var textBlock = document.getElementById('online_text_block');
+    var fileBlock = document.getElementById('online_file_block');
+
+    function toggleOnlineFields() {
+        var isPhysical = modeSelect && modeSelect.value === 'physical';
+        if (textBlock) {
+            textBlock.style.display = isPhysical ? 'none' : '';
+        }
+        if (fileBlock) {
+            fileBlock.style.display = isPhysical ? 'none' : '';
+        }
+    }
+
+    if (modeSelect) {
+        modeSelect.addEventListener('change', toggleOnlineFields);
+        toggleOnlineFields();
+    }
+});
+</script>
+{% endblock %}

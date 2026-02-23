@@ -1,0 +1,79 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Reply to Parent - Acadlink{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white border-0">
+                    <h4 class="mb-0 fw-bold">
+                        <i class="bi bi-reply"></i> Reply to Parent
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <!-- Original Message -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0 fw-bold">Original Message</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2">
+                                <strong>From:</strong> {{ message.parent.get_full_name|default:message.parent.username }}<br>
+                                <strong>About Student:</strong> {{ message.student.get_full_name|default:message.student.username }}<br>
+                                <strong>Subject:</strong> {{ message.subject }}<br>
+                                <strong>Date:</strong> {{ message.sent_at|date:"M d, Y H:i" }}
+                            </p>
+                            <hr>
+                            <p class="mb-0">{{ message.message }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Reply Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="teacher_reply" class="form-label fw-bold">Your Reply</label>
+                            <textarea name="teacher_reply" 
+                                      id="teacher_reply" 
+                                      class="form-control" 
+                                      rows="6"
+                                      placeholder="Type your reply to the parent here..."
+                                      required></textarea>
+                            <small class="form-text text-muted">
+                                The parent will be able to see your reply in their messages.
+                            </small>
+                        </div>
+
+                        <div class="alert alert-info border-0 mb-4">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            <strong>Professional Tips:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Be respectful and professional in your communication</li>
+                                <li>Provide specific information about the student's progress</li>
+                                <li>Offer constructive suggestions if addressing concerns</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success flex-grow-1">
+                                <i class="bi bi-send"></i> Send Reply
+                            </button>
+                            <a href="{% url 'teacher_messages' %}" class="btn btn-outline-secondary flex-grow-1">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+{% endblock %}

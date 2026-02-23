@@ -1,0 +1,189 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Register - Acadlink{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-primary text-white border-0 text-center py-4">
+                    <h3 class="mb-0 fw-bold text-white" style="color: #fff !important;">
+                        <i class="bi bi-person-plus-fill"></i> Create Account
+                    </h3>
+                    <p class="mb-0 small">Join Acadlink today</p>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Role Selection -->
+                        <div class="mb-4">
+                            <label for="{{ form.role.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-person-badge"></i> {{ form.role.label }}
+                            </label>
+                            {{ form.role }}
+                            {% if form.role.errors %}
+                                <div class="text-danger small">{{ form.role.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted d-block mt-2">
+                                <strong>Student:</strong> Access homework, submit assignments, track progress<br>
+                                <strong>Teacher:</strong> Create homework, review submissions, monitor students<br>
+                                <strong>Parent:</strong> Monitor children's progress, view homework, message teachers
+                            </small>
+                        </div>
+
+                        <!-- Personal Information -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label fw-bold">First Name</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small">{{ form.first_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label fw-bold">Last Name</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small">{{ form.last_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label fw-bold">Username</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-danger small">{{ form.username.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                This will be your login username. Choose something unique.
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label fw-bold">Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label fw-bold">Phone Number (Optional)</label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}
+                                <div class="text-danger small">{{ form.phone_number.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label for="{{ form.password.id_for_label }}" class="form-label fw-bold">Password</label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="text-danger small">{{ form.password.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.password_confirm.id_for_label }}" class="form-label fw-bold">Confirm Password</label>
+                            {{ form.password_confirm }}
+                            {% if form.password_confirm.errors %}
+                                <div class="text-danger small">{{ form.password_confirm.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Non-field errors -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <!-- Important Notice -->
+                        <div class="alert alert-info border-0 mb-4">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            <strong>Important:</strong> Your account will require administrator approval before you can log in.
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">
+                            <i class="bi bi-check-circle"></i> Create Account
+                        </button>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <p class="text-center mb-0">
+                        Already have an account? 
+                        <a href="{% url 'login' %}" class="fw-bold">Login here</a>
+                    </p>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- Role Selection Guide -->
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0 fw-bold text-center">
+                        <i class="bi bi-question-circle"></i> Which role should I choose?
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="display-6 text-info">👨‍🎓</div>
+                                <h6 class="fw-bold mt-2">Student</h6>
+                                <ul class="text-start small">
+                                    <li>View and submit homework</li>
+                                    <li>Track your progress</li>
+                                    <li>Log daily mood</li>
+                                    <li>Get workload suggestions</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="display-6 text-primary">👨‍🏫</div>
+                                <h6 class="fw-bold mt-2">Teacher</h6>
+                                <ul class="text-start small">
+                                    <li>Create homework assignments</li>
+                                    <li>Review student submissions</li>
+                                    <li>Monitor class workload</li>
+                                    <li>Reply to parent messages</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="display-6 text-success">👨‍👩‍👧</div>
+                                <h6 class="fw-bold mt-2">Parent</h6>
+                                <ul class="text-start small">
+                                    <li>Link with your children</li>
+                                    <li>Monitor academic progress</li>
+                                    <li>View homework & submissions</li>
+                                    <li>Message teachers</li>
+                                    <li>Set daily free time</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

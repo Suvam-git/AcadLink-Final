@@ -1,0 +1,120 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Review Submissions - Acadlink{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-clipboard-check me-2 text-primary"></i>Review Submissions</h2>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Filter by Status</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                    <option value="resubmit" {% if status_filter == 'resubmit' %}selected{% endif %}>Needs Resubmission
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <a href="{% url 'review_submissions' %}" class="btn btn-outline-primary w-100">Clear Filters</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Submissions List -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clipboard-check"></i> Homework Submissions</h5>
+    </div>
+    <div class="card-body">
+        {% if submissions %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Homework</th>
+                        <th>Subject</th>
+                        <th>Method</th>
+                        <th>Submitted</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for submission in submissions %}
+                    <tr>
+                        <td>{{ submission.student.get_full_name }}</td>
+                        <td>{{ submission.homework.title }}</td>
+                        <td><span class="badge bg-info">{{ submission.homework.subject.name }}</span></td>
+                        <td>
+                            <span
+                                class="badge {% if submission.submission_mode == 'physical' %}bg-dark{% else %}bg-primary{% endif %}">
+                                {{ submission.get_submission_mode_display }}
+                            </span>
+                        </td>
+                        <td>{{ submission.submitted_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            <span class="badge 
+                                        {% if submission.approval_status == 'approved' %}bg-success
+                                        {% elif submission.approval_status == 'rejected' %}bg-danger
+                                        {% elif submission.approval_status == 'resubmit' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                {{ submission.get_approval_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'review_submission_detail' submission.id %}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-eye"></i> Review
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if submissions.has_other_pages %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if submissions.has_previous %}
+                <li class="page-item">
+                    <a class="page-link"
+                        href="?page={{ submissions.previous_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">Previous</a>
+                </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <span class="page-link">Page {{ submissions.number }} of {{ submissions.paginator.num_pages
+                        }}</span>
+                </li>
+
+                {% if submissions.has_next %}
+                <li class="page-item">
+                    <a class="page-link"
+                        href="?page={{ submissions.next_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <p class="text-muted text-center mb-0">No submissions found matching the filters.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

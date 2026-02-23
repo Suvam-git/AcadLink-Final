@@ -1,0 +1,278 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Assign Class - Acadlink{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white border-0">
+                    <h4 class="mb-0 fw-bold">
+                        <i class="bi bi-building"></i> 
+                        {% if user_to_assign.role == 'teacher' %}Manage Teaching Assignments{% else %}Assign Class{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <!-- User Info -->
+                    <div class="alert alert-info border-0 mb-4">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>Name:</strong> {{ user_to_assign.get_full_name|default:user_to_assign.username }}
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Username:</strong> {{ user_to_assign.username }}
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Role:</strong> 
+                                <span class="badge {% if user_to_assign.role == 'teacher' %}bg-primary{% else %}bg-info{% endif %}">
+                                    {{ user_to_assign.get_role_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" id="assignForm">
+                        {% csrf_token %}
+                        
+                        {% if user_to_assign.role == 'teacher' %}
+                        <!-- TEACHER: Multiple Class Assignments -->
+                        
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0 fw-bold">Assign Multiple Classes</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    Select all class-section combinations this teacher should teach. Mark one as primary (default for dashboard).
+                                </p>
+                                
+                                {% for class in classes %}
+                                <div class="mb-3">
+                                    <h6 class="fw-bold text-primary">{{ class.name }}</h6>
+                                    <div class="row">
+                                        {% for section in class.sections.all %}
+                                        <div class="col-md-4 mb-2">
+                                            <div class="form-check">
+                                                {% with key=class.id|stringformat:"s"|add:"-"|add:section.id|stringformat:"s" %}
+                                                <input class="form-check-input class-section-checkbox" 
+                                                       type="checkbox" 
+                                                       name="teacher_classes" 
+                                                       value="{{ class.id }}-{{ section.id }}" 
+                                                       id="class_{{ class.id }}_section_{{ section.id }}"
+                                                       {% for assignment in teacher_assignments %}
+                                                           {% if assignment.class_name.id == class.id and assignment.section.id == section.id %}checked{% endif %}
+                                                       {% endfor %}>
+                                                <label class="form-check-label" for="class_{{ class.id }}_section_{{ section.id }}">
+                                                    Section {{ section.name }}
+                                                </label>
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+                                        {% empty %}
+                                        <div class="col-12">
+                                            <small class="text-muted">No sections available</small>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-muted mb-0">No classes available. Please create classes and sections first.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0 fw-bold">Set Primary Class</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    The primary class will be the default shown on the teacher's dashboard.
+                                </p>
+                                <select name="primary_assignment" id="primarySelect" class="form-select" required>
+                                    <option value="">Select Primary Class-Section</option>
+                                    {% for class in classes %}
+                                        {% for section in class.sections.all %}
+                                        <option value="{{ class.id }}-{{ section.id }}"
+                                                {% for assignment in teacher_assignments %}
+                                                    {% if assignment.class_name.id == class.id and assignment.section.id == section.id and assignment.is_primary %}selected{% endif %}
+                                                {% endfor %}>
+                                            {{ class.name }} - Section {{ section.name }}
+                                        </option>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0 fw-bold">Subjects Taught</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for subject in subjects %}
+                                    <div class="col-md-4 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" 
+                                                   type="checkbox" 
+                                                   name="subjects_taught" 
+                                                   value="{{ subject.id }}" 
+                                                   id="subject_{{ subject.id }}"
+                                                   {% if subject in user_to_assign.subjects_taught.all %}checked{% endif %}>
+                                            <label class="form-check-label" for="subject_{{ subject.id }}">
+                                                {{ subject.name }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% else %}
+                        <!-- STUDENT: Single Class Assignment -->
+                        
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0 fw-bold">Assign Class & Section</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Class</label>
+                                        <select name="class_assigned" id="classSelect" class="form-select" required>
+                                            <option value="">Select Class</option>
+                                            {% for class in classes %}
+                                            <option value="{{ class.id }}" 
+                                                    {% if user_to_assign.class_assigned and user_to_assign.class_assigned.id == class.id %}selected{% endif %}>
+                                                {{ class.name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Section</label>
+                                        <select name="section_assigned" id="sectionSelect" class="form-select" required>
+                                            <option value="">Select Section</option>
+                                            {% if user_to_assign.class_assigned %}
+                                                {% for section in user_to_assign.class_assigned.sections.all %}
+                                                <option value="{{ section.id }}"
+                                                        {% if user_to_assign.section_assigned and user_to_assign.section_assigned.id == section.id %}selected{% endif %}>
+                                                    {{ section.name }}
+                                                </option>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="bi bi-save"></i> Save Assignment
+                            </button>
+                            <a href="{% url 'manage_users' %}" class="btn btn-outline-secondary flex-grow-1">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<script>
+// For students: auto-load sections when class changes
+{% if user_to_assign.role == 'student' %}
+document.addEventListener('DOMContentLoaded', function() {
+    const classSelect = document.getElementById('classSelect');
+    const sectionSelect = document.getElementById('sectionSelect');
+    const initialSectionId = "{{ user_to_assign.section_assigned_id|default:''|escapejs }}";
+
+    const sectionsByClass = {
+        {% for class in classes %}
+        "{{ class.id }}": [
+            {% for section in class.sections.all %}
+            {"id": "{{ section.id }}", "name": "{{ section.name|escapejs }}"}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    function populateSections(classId, selectedSectionId) {
+        sectionSelect.innerHTML = '<option value="">Select Section</option>';
+
+        if (!classId || !sectionsByClass[classId] || sectionsByClass[classId].length === 0) {
+            return;
+        }
+
+        sectionsByClass[classId].forEach(function(section) {
+            const option = document.createElement('option');
+            option.value = section.id;
+            option.textContent = section.name;
+            if (selectedSectionId && String(selectedSectionId) === String(section.id)) {
+                option.selected = true;
+            }
+            sectionSelect.appendChild(option);
+        });
+    }
+
+    classSelect.addEventListener('change', function() {
+        populateSections(this.value, "");
+    });
+
+    if (classSelect.value) {
+        populateSections(classSelect.value, initialSectionId);
+    }
+});
+{% endif %}
+
+// For teachers: validate that primary is one of the selected classes
+{% if user_to_assign.role == 'teacher' %}
+document.getElementById('assignForm').addEventListener('submit', function(e) {
+    const selectedClasses = Array.from(document.querySelectorAll('.class-section-checkbox:checked')).map(cb => cb.value);
+    const primaryClass = document.getElementById('primarySelect').value;
+    
+    if (selectedClasses.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one class-section combination.');
+        return false;
+    }
+    
+    if (!selectedClasses.includes(primaryClass)) {
+        e.preventDefault();
+        alert('Primary class must be one of the selected class-sections.');
+        return false;
+    }
+});
+
+// Auto-select primary when a class is checked
+document.querySelectorAll('.class-section-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const primarySelect = document.getElementById('primarySelect');
+        const checkedBoxes = document.querySelectorAll('.class-section-checkbox:checked');
+        
+        // Update primary select options
+        const currentPrimary = primarySelect.value;
+        const checkedValues = Array.from(checkedBoxes).map(cb => cb.value);
+        
+        // If current primary is not in checked boxes, select first checked box as primary
+        if (!checkedValues.includes(currentPrimary) && checkedValues.length > 0) {
+            primarySelect.value = checkedValues[0];
+        }
+    });
+});
+{% endif %}
+</script>
+
+{% endblock %}
